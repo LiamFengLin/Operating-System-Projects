@@ -28,16 +28,7 @@ static const struct test tests[] =
     {"priority-fifo", test_priority_fifo},
     {"priority-preempt", test_priority_preempt},
     {"priority-sema", test_priority_sema},
-    {"priority-condvar", test_priority_condvar},
-    {"mlfqs-load-1", test_mlfqs_load_1},
-    {"mlfqs-load-60", test_mlfqs_load_60},
-    {"mlfqs-load-avg", test_mlfqs_load_avg},
-    {"mlfqs-recent-1", test_mlfqs_recent_1},
-    {"mlfqs-fair-2", test_mlfqs_fair_2},
-    {"mlfqs-fair-20", test_mlfqs_fair_20},
-    {"mlfqs-nice-2", test_mlfqs_nice_2},
-    {"mlfqs-nice-10", test_mlfqs_nice_10},
-    {"mlfqs-block", test_mlfqs_block},
+    {"priority-condvar", test_priority_condvar}
   };
 
 static const char *test_name;
