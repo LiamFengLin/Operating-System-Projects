@@ -74,7 +74,7 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
-bool wake_up_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
+bool less (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 
 /* Initializes the threading system by transforming the code
@@ -260,7 +260,7 @@ thread_sleep (int64_t wake_up_time)
   struct thread* current_thread = thread_current();
   sema_init (&current_thread->sema, 0);
   current_thread->wake_up_time = wake_up_time;
-  list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &wake_up_priority, NULL);
+  list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &less, NULL);
   sema_down (&current_thread->sema);
   intr_set_level(old_level);
 }
@@ -626,7 +626,7 @@ allocate_tid (void)
 
 /* comparision function for blocked_list. Decides who wakes up first. */
 bool
-wake_up_priority (const struct list_elem *a, const struct list_elem *b, void *aux)
+less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
   struct thread *thread_a = list_entry (a, struct thread, sleep_sema);
   struct thread *thread_b = list_entry (b, struct thread, sleep_sema);
