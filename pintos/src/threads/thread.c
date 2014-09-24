@@ -241,12 +241,9 @@ check_should_wake_up (int64_t current_ticks)
   e = list_back(&blocked_list);
   t = list_entry (e, struct thread, sleep_sema);
   ASSERT (is_thread(t));
-  //printf("%s    %s\n", thread_current()->name, "imcurrent!");
   while (t->wake_up_time <= current_ticks) {
-    //printf("%s  %s\n", t->name, "wake up!!!");
     list_remove (e);
     sema_up(&t->sema);
-    //printf("%d   %s\n", list_size(&blocked_list), "last blocked list size after removal");
     if (list_empty(&blocked_list)) {
       break;
     }
@@ -261,7 +258,6 @@ thread_sleep (int64_t wake_up_time)
 {
   enum intr_level old_level = intr_disable ();
   struct thread* current_thread = thread_current();
-  //printf("%s\n", current_thread->name);
   sema_init (&current_thread->sema, 0);
   current_thread->wake_up_time = wake_up_time;
   list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &wake_up_priority, NULL);
@@ -633,11 +629,7 @@ bool
 wake_up_priority (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
   struct thread *thread_a = list_entry (a, struct thread, sleep_sema);
-  //printf("%s\n", thread_a->name);
-  ASSERT (is_thread(thread_a));
   struct thread *thread_b = list_entry (b, struct thread, sleep_sema);
-  //printf("%s\n", thread_b->name);
-  ASSERT (is_thread(thread_b));
   if (thread_a->wake_up_time > thread_b->wake_up_time) {
     return true;
   } else {
