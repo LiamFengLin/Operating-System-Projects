@@ -72,14 +72,6 @@ timer_ticks (void)
 {
   enum intr_level old_level = intr_disable ();
   int64_t t = ticks;
-  struct list_elem *head = list_head(blocked_list)
-  while(!istail(head)) {
-    if (head->wake_up_time == t) {
-      sema_up(head->sema)
-    }
-  }
-    
-  }
   intr_set_level (old_level);
   return t;
 }
@@ -97,15 +89,11 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
-  int64_t start = timer_ticks ();
-
   ASSERT (intr_get_level () == INTR_ON);
-  struct semaphore *sema;
-  thread_current ()->sema = sema
-  thread_current ()->wake_up_time = start + ticks;
-  list_insert_ordered (blocked_list, thread_current()->elem, wake_up_priority, NULL);
-  sema_init (sema, 0)
-  sema_down (sema)
+  int64_t start = timer_ticks ();
+  ASSERT (intr_get_level () == INTR_ON);
+  int64_t wake_up_time = start + ticks;
+  thread_sleep (wake_up_time);
   // while (timer_elapsed (start) < ticks) 
   //   thread_yield ();
 }
@@ -186,6 +174,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+  check_should_wake_up (ticks);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
@@ -257,11 +246,4 @@ real_time_delay (int64_t num, int32_t denom)
      the possibility of overflow. */
   ASSERT (denom % 1000 == 0);
   busy_wait (loops_per_tick * num / 1000 * TIMER_FREQ / (denom / 1000)); 
-}
-
-/* comparision function for blocked_list. Decides who wakes up first. */
-static void
-wake_up_priority (const struct list_elem *a, const struct list_elem *b, void *aux)
-{
-  return a->wake_up_time < b->wake_up_time);
 }

@@ -74,6 +74,8 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
+bool wake_up_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
+
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -95,7 +97,9 @@ thread_init (void)
 
   lock_init (&tid_lock);
   list_init (&ready_list);
+  list_init (&blocked_list);
   list_init (&all_list);
+  //sema_init (&sema, 0);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -142,6 +146,7 @@ thread_tick (void)
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
 }
+
 
 /* Prints thread statistics. */
 void
@@ -222,6 +227,46 @@ thread_block (void)
 
   thread_current ()->status = THREAD_BLOCKED;
   schedule ();
+}
+
+void
+check_should_wake_up (int64_t current_ticks)  
+{
+  enum intr_level old_level = intr_disable ();
+  struct list_elem *e;
+  struct thread *t;
+  if (list_empty (&blocked_list)) {
+    return;
+  }
+  e = list_back(&blocked_list);
+  t = list_entry (e, struct thread, sleep_sema);
+  ASSERT (is_thread(t));
+  //printf("%s    %s\n", thread_current()->name, "imcurrent!");
+  while (t->wake_up_time <= current_ticks) {
+    //printf("%s  %s\n", t->name, "wake up!!!");
+    list_remove (e);
+    sema_up(&t->sema);
+    //printf("%d   %s\n", list_size(&blocked_list), "last blocked list size after removal");
+    if (list_empty(&blocked_list)) {
+      break;
+    }
+    e = list_back(&blocked_list);
+    t = list_entry (e, struct thread, sleep_sema);
+  }
+  intr_set_level(old_level);
+}
+
+void
+thread_sleep (int64_t wake_up_time) 
+{
+  enum intr_level old_level = intr_disable ();
+  struct thread* current_thread = thread_current();
+  //printf("%s\n", current_thread->name);
+  sema_init (&current_thread->sema, 0);
+  current_thread->wake_up_time = wake_up_time;
+  list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &wake_up_priority, NULL);
+  sema_down (&current_thread->sema);
+  intr_set_level(old_level);
 }
 
 /* Transitions a blocked thread T to the ready-to-run state.
@@ -581,6 +626,23 @@ allocate_tid (void)
   lock_release (&tid_lock);
 
   return tid;
+}
+
+/* comparision function for blocked_list. Decides who wakes up first. */
+bool
+wake_up_priority (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct thread *thread_a = list_entry (a, struct thread, sleep_sema);
+  //printf("%s\n", thread_a->name);
+  ASSERT (is_thread(thread_a));
+  struct thread *thread_b = list_entry (b, struct thread, sleep_sema);
+  //printf("%s\n", thread_b->name);
+  ASSERT (is_thread(thread_b));
+  if (thread_a->wake_up_time > thread_b->wake_up_time) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 /* Offset of `stack' member within `struct thread'.
