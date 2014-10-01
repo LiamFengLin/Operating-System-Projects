@@ -239,7 +239,7 @@ thread_block (void)
 void
 check_should_wake_up (int64_t current_ticks)  
 {
-  enum intr_level old_level = intr_disable ();
+  // enum intr_level old_level = intr_disable ();
   struct list_elem *e;
   struct thread *t;
   if (list_empty (&blocked_list)) {
@@ -257,19 +257,19 @@ check_should_wake_up (int64_t current_ticks)
     e = list_back(&blocked_list);
     t = list_entry (e, struct thread, sleep_sema);
   }
-  intr_set_level(old_level);
+  // intr_set_level(old_level);
 }
 
 void
 thread_sleep (int64_t wake_up_time) 
 {
-  enum intr_level old_level = intr_disable ();
+  // enum intr_level old_level = intr_disable ();
   struct thread* current_thread = thread_current();
   sema_init (&current_thread->sema, 0);
   current_thread->wake_up_time = wake_up_time;
   list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &less, NULL);
   sema_down (&current_thread->sema);
-  intr_set_level(old_level);
+  // intr_set_level(old_level);
 }
 
 /* Transitions a blocked thread T to the ready-to-run state.
