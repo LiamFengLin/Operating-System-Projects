@@ -212,7 +212,7 @@ lock_acquire (struct lock *lock)
   (&lock->semaphore)->value--;
   struct held_elem held;
   held.lock = lock;
-  list_push_back(&(thread_current()->held_lock), &held.elem);
+  list_push_front(&(thread_current()->held_lock), &held.elem);
   thread_current()->waiting_lock = NULL;
   update_all_donated_priority_with_schedule();
   list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
