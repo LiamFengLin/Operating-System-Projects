@@ -204,6 +204,7 @@ lock_acquire (struct lock *lock)
       list_push_back(&(&lock->semaphore)->waiters, &(thread_current()->elem));
       thread_current()->waiting_lock = lock;
       update_all_donated_priority();
+      list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
       thread_block();
     }
   lock->holder = thread_current();
@@ -214,6 +215,7 @@ lock_acquire (struct lock *lock)
   list_push_front(&(thread_current()->held_lock), &held.elem);
   thread_current()->waiting_lock = NULL;
   update_all_donated_priority_with_schedule();
+  list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
   intr_set_level (old_level);
 
 }
@@ -256,6 +258,7 @@ lock_release (struct lock *lock)
 
   old_level = intr_disable ();
   if (!list_empty (&(&lock->semaphore)->waiters)){
+    list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
     thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
   }
   (&lock->semaphore)->value++;
@@ -273,7 +276,7 @@ lock_release (struct lock *lock)
         break;
       }
     }
-    // ASSERT (found);
+    ASSERT (found);
   }
   intr_set_level (old_level);
 }
