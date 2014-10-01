@@ -292,7 +292,7 @@ lock_release (struct lock *lock)
         break;
       }
     }
-    // ASSERT (found);
+    ASSERT (found);
   }
   intr_set_level (old_level);
 }
