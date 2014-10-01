@@ -375,6 +375,7 @@ cond_wait (struct condition *cond, struct lock *lock)
   lock_release (lock);
   sema_down (&waiter.semaphore);
   lock_acquire (lock);
+  thread_yield();
 }
 
 /* If any threads are waiting on COND (protected by LOCK), then
