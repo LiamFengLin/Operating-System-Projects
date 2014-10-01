@@ -177,6 +177,7 @@ lock_init (struct lock *lock)
   ASSERT (lock != NULL);
 
   lock->holder = NULL;
+  lock->largest_donated_priority = 0;
   sema_init (&lock->semaphore, 1);
 }
 
