@@ -290,6 +290,7 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
   list_insert_ordered (&ready_list, &t->elem, (list_less_func *) &scheduler_less, NULL);
   t->status = THREAD_READY;
+  update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
 }
 
