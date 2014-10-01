@@ -388,7 +388,7 @@ thread_set_priority (int new_priority)
   thread_current ()->priority = new_priority;
   if (thread_current()->waiting_lock != NULL)
   {
-    update_all_donated_priority();
+    update_all_donated_priority_with_schedule();
   }
   intr_set_level (old_level);
 }
