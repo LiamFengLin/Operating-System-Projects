@@ -127,8 +127,7 @@ static void sema_test_helper (void *sema_);
 void
 sema_self_test (void) 
 {
-  struct semaphore sema[2];
-  int i;
+  struct semaphore sema[2];  int i;
 
   printf ("Testing semaphores...");
   sema_init (&sema[0], 0);
