@@ -256,7 +256,7 @@ lock_release (struct lock *lock)
 
   old_level = intr_disable ();
   if (!list_empty (&(&lock->semaphore)->waiters)){
-    thread_unblock (list_entry (list_pop_back (&(&lock->semaphore)->waiters), struct thread, elem));
+    thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
   }
   (&lock->semaphore)->value++;
   if (!list_empty(&(thread_current()->held_lock)))
