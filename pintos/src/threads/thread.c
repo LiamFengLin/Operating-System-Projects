@@ -638,8 +638,8 @@ allocate_tid (void)
 bool
 less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
-  struct thread *thread_a = list_entry (a, struct thread, sleep_sema);
-  struct thread *thread_b = list_entry (b, struct thread, sleep_sema);
+  struct thread *thread_a = list_entry (a, struct thread, elem);
+  struct thread *thread_b = list_entry (b, struct thread, elem);
   if (thread_a->wake_up_time > thread_b->wake_up_time) {
     return true;
   } else {
