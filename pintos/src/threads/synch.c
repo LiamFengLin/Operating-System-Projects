@@ -374,8 +374,8 @@ cond_wait (struct condition *cond, struct lock *lock)
   list_insert_ordered (&cond->waiters, &waiter.elem, (list_less_func *) &scheduler_less, NULL);
   lock_release (lock);
   sema_down (&waiter.semaphore);
-  lock_acquire (lock);
   thread_yield();
+  lock_acquire (lock);
 }
 
 /* If any threads are waiting on COND (protected by LOCK), then
