@@ -252,7 +252,7 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   lock->holder = NULL;
-  
+
   enum intr_level old_level;
   ASSERT ((&lock->semaphore) != NULL);
 
@@ -268,7 +268,7 @@ lock_release (struct lock *lock)
     for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
     {
       s = list_entry(e, struct held_elem, elem)->lock;
-      if (s == lock) {
+      if (s->holder == NULL) {
         list_remove(e);
         break;
       }
