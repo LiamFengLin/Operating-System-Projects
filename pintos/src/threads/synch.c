@@ -269,7 +269,7 @@ lock_release (struct lock *lock)
     for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
     {
       s = list_entry(e, struct held_elem, elem)->lock;
-      if (s->holder == NULL) {
+      if (s->sema == NULL) {
         list_remove(e);
         found = true;
         break;
