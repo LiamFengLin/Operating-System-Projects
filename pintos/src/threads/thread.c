@@ -243,18 +243,19 @@ check_should_wake_up (int64_t current_ticks)
   struct list_elem *e;
   struct thread *t;
   if (list_empty (&blocked_list)) {
-    return;
+    return 0;
   }
   e = list_back(&blocked_list);
-  t = list_entry (e, struct thread, sleep_sema);
+  t = list_entry (e, struct thread, elem);
   ASSERT (is_thread(t));
   while (t->wake_up_time <= current_ticks) {
-    list_insert_ordered (&ready_list, list_pop_back(&blocked_list), (list_less_func *) &scheduler_less, NULL);
+    list_remove(e);
+    list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_less, NULL);
     if (list_empty(&blocked_list)) {
       break;
     }
     e = list_back(&blocked_list);
-    t = list_entry (e, struct thread, sleep_sema);
+    t = list_entry (e, struct thread, elem);
     ASSERT (is_thread(t));
   }
   intr_set_level(old_level);
@@ -266,7 +267,7 @@ thread_sleep (int64_t wake_up_time)
   enum intr_level old_level = intr_disable ();
   struct thread* current_thread = thread_current();
   current_thread->wake_up_time = wake_up_time;
-  list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &less, NULL);
+  list_insert_ordered (&blocked_list, &current_thread->elem, (list_less_func *) &less, NULL);
   thread_block();
   intr_set_level(old_level);
 }
