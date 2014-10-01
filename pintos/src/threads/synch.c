@@ -243,8 +243,8 @@ lock_try_acquire (struct lock *lock)
       // struct held_elem held;
       // held.lock = lock;
       // list_push_front(&(thread_current()->held_lock), &held.elem);
-      // thread_current()->waiting_lock = NULL;
-      // update_all_donated_priority_with_schedule();
+      thread_current()->waiting_lock = NULL;
+      update_all_donated_priority_with_schedule();
       success = true; 
     }
   else
