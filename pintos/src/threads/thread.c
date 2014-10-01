@@ -649,38 +649,26 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 void
 update_all_donated_priority()
 {
-  int i;
-  struct list_elem *e;
-  struct thread *t;
-  for (i=0; i<8; i++) {
-    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-    {
-      t = list_entry (e, struct thread, elem);
-      if (t->waiting_lock != NULL)
-      {
-        lock_update_ldp(t->waiting_lock);
-      }
-    }
-  }
+  // int i;
+  // struct list_elem *e;
+  // struct thread *t;
+  // for (i=0; i<8; i++) {
+  //   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+  //   {
+  //     t = list_entry (e, struct thread, elem);
+  //     if (t->waiting_lock != NULL)
+  //     {
+  //       lock_update_ldp(t->waiting_lock);
+  //     }
+  //   }
+  // }
 }
 
 /* update all donated priorities and run schedule */
 void
 update_all_donated_priority_with_schedule()
 {
-  int i;
-  struct list_elem *e;
-  struct thread *t;
-  for (i=0; i<8; i++) {
-    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-    {
-      t = list_entry (e, struct thread, elem);
-      if (t->waiting_lock != NULL)
-      {
-        lock_update_ldp(t->waiting_lock);
-      }
-    }
-  }
+  // update_all_donated_priority();
   list_push_back(&ready_list, &thread_current()->elem);
   thread_current()->status = THREAD_READY;
   list_sort(&ready_list, (list_less_func *) &scheduler_less, NULL);
@@ -691,16 +679,16 @@ update_all_donated_priority_with_schedule()
 void
 lock_update_ldp (struct lock *lock)
 {
-  struct list_elem *e;
-  struct thread *t;
-  if (!list_empty(&(&lock->semaphore)->waiters))
-  {
-    for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
-    {
-      t = list_entry (e, struct thread, elem);
-      lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
-    }
-  }
+  // struct list_elem *e;
+  // struct thread *t;
+  // if (!list_empty(&(&lock->semaphore)->waiters))
+  // {
+  //   for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
+  //   {
+  //     t = list_entry (e, struct thread, elem);
+  //     lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
+  //   }
+  // }
 }
 
 
