@@ -210,11 +210,11 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
-  /* Add to run queue. */
-  thread_unblock (t);
 
   enum intr_level old_level;
   old_level = intr_disable ();
+  /* Add to run queue. */
+  thread_unblock (t);
   update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
   return tid;
