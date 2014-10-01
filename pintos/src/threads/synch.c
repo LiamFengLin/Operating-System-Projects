@@ -207,6 +207,7 @@ lock_acquire (struct lock *lock)
       list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
       thread_block();
     }
+  lock->holder = thread_current();
   lock_update_ldp(lock);
   (&lock->semaphore)->value--;
   struct held_elem held;
@@ -217,7 +218,6 @@ lock_acquire (struct lock *lock)
   list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
   intr_set_level (old_level);
 
-  lock->holder = thread_current ();
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
