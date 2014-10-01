@@ -231,8 +231,6 @@ lock_try_acquire (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (!lock_held_by_current_thread (lock));
 
-  success = sema_try_down (&lock->semaphore);
-
   enum intr_level old_level;
   ASSERT ((&lock->semaphore) != NULL);
 
