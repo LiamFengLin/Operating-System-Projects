@@ -292,6 +292,7 @@ lock_release (struct lock *lock)
   //   // ASSERT (found);
   // }
   intr_set_level (old_level);
+  thread_yield();
 }
 
 /* Returns true if the current thread holds LOCK, false
@@ -375,9 +376,10 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED)
   ASSERT (!intr_context ());
   ASSERT (lock_held_by_current_thread (lock));
 
-  while (!list_empty (&cond->waiters)) 
+  if (!list_empty (&cond->waiters)) 
     sema_up (&list_entry (list_pop_front (&cond->waiters),
                           struct semaphore_elem, elem)->semaphore);
+  thread_yield();
 }
 
 /* Wakes up all threads, if any, waiting on COND (protected by
