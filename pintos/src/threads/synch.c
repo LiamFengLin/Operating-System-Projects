@@ -209,11 +209,11 @@ lock_acquire (struct lock *lock)
     }
   lock->holder = thread_current();
   (&lock->semaphore)->value--;
-  struct held_elem held;
-  held.lock = lock;
-  list_push_front(&(thread_current()->held_lock), &held.elem);
-  thread_current()->waiting_lock = NULL;
-  update_all_donated_priority_with_schedule();
+  // struct held_elem held;
+  // held.lock = lock;
+  // list_push_front(&(thread_current()->held_lock), &held.elem);
+  // thread_current()->waiting_lock = NULL;
+  // update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
 
 }
@@ -240,11 +240,11 @@ lock_try_acquire (struct lock *lock)
     {
       lock->holder = thread_current();
       (&lock->semaphore)->value--;
-      struct held_elem held;
-      held.lock = lock;
-      list_push_front(&(thread_current()->held_lock), &held.elem);
-      thread_current()->waiting_lock = NULL;
-      update_all_donated_priority_with_schedule();
+      // struct held_elem held;
+      // held.lock = lock;
+      // list_push_front(&(thread_current()->held_lock), &held.elem);
+      // thread_current()->waiting_lock = NULL;
+      // update_all_donated_priority_with_schedule();
       success = true; 
     }
   else
