@@ -389,10 +389,7 @@ thread_set_priority (int new_priority)
   enum intr_level old_level;
   old_level = intr_disable ();
   thread_current ()->priority = new_priority;
-  if (thread_current()->waiting_lock != NULL)
-  {
-    update_all_donated_priority_with_schedule();
-  }
+  update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
 }
 
@@ -526,7 +523,6 @@ init_thread (struct thread *t, const char *name, int priority)
 
   old_level = intr_disable ();
   list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &scheduler_less, NULL);
-  update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
 }
 
