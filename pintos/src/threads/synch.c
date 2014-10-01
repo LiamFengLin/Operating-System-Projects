@@ -272,7 +272,6 @@ lock_release (struct lock *lock)
 
   old_level = intr_disable ();
   if (!list_empty (&(&lock->semaphore)->waiters)){
-    list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
     thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
   }
   (&lock->semaphore)->value++;

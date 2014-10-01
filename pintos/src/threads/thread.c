@@ -613,10 +613,6 @@ static void
 schedule (void) 
 {
   ASSERT (intr_get_level () == INTR_OFF);
-  if (!list_empty(&ready_list))
-  {
-    list_sort(&ready_list, &scheduler_less, NULL);
-  }
   struct thread *cur = running_thread ();
   struct thread *next = next_thread_to_run ();
   struct thread *prev = NULL;
@@ -681,7 +677,6 @@ update_all_donated_priority_with_schedule()
   update_all_donated_priority();
   list_insert_ordered (&ready_list, &thread_current()->elem, (list_less_func *) &scheduler_less, NULL);
   thread_current()->status = THREAD_READY;
-  list_sort(&ready_list, (list_less_func *) &scheduler_less, NULL);
   schedule();
 }
 
