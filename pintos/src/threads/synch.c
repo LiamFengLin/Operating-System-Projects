@@ -212,7 +212,7 @@ lock_acquire (struct lock *lock)
   held.lock = lock;
   list_push_front(&(thread_current()->held_lock), &held.elem);
   thread_current()->waiting_lock = NULL;
-  update_all_donated_priority();
+  update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
 
 }
@@ -232,8 +232,27 @@ lock_try_acquire (struct lock *lock)
   ASSERT (!lock_held_by_current_thread (lock));
 
   success = sema_try_down (&lock->semaphore);
-  if (success)
-    lock->holder = thread_current ();
+
+  enum intr_level old_level;
+  ASSERT ((&lock->semaphore) != NULL);
+
+  old_level = intr_disable ();
+  if ((&lock->semaphore)->value > 0) 
+    {
+      lock->holder = thread_current();
+      (&lock->semaphore)->value--;
+      struct held_elem held;
+      held.lock = lock;
+      list_push_front(&(thread_current()->held_lock), &held.elem);
+      thread_current()->waiting_lock = NULL;
+      update_all_donated_priority_with_schedule();
+      intr_set_level (old_level);
+      success = true; 
+    }
+  else
+    success = false;
+  intr_set_level (old_level);
+
   return success;
 }
 

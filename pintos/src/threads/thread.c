@@ -684,7 +684,7 @@ update_all_donated_priority_with_schedule()
   list_push_back(&ready_list, &thread_current()->elem);
   thread_current()->status = THREAD_READY;
   list_sort(&ready_list, (list_less_func *) &scheduler_less, NULL);
-  // schedule();
+  schedule();
 }
 
 /* update lock's largest_donated_priority */
