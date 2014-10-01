@@ -526,6 +526,7 @@ init_thread (struct thread *t, const char *name, int priority)
 
   old_level = intr_disable ();
   list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &scheduler_less, NULL);
+  update_all_donated_priority_with_schedule();
   intr_set_level (old_level);
 }
 
@@ -674,7 +675,7 @@ update_all_donated_priority()
 void
 update_all_donated_priority_with_schedule()
 {
-  update_all_donated_priority();
+  // update_all_donated_priority();
   list_insert_ordered (&ready_list, &thread_current()->elem, (list_less_func *) &scheduler_less, NULL);
   thread_current()->status = THREAD_READY;
   schedule();
@@ -684,16 +685,16 @@ update_all_donated_priority_with_schedule()
 void
 lock_update_ldp (struct lock *lock)
 {
-  struct list_elem *e;
-  struct thread *t;
-  if (!list_empty(&(&lock->semaphore)->waiters))
-  {
-    for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
-    {
-      t = list_entry (e, struct thread, elem);
-      lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
-    }
-  }
+  // struct list_elem *e;
+  // struct thread *t;
+  // if (!list_empty(&(&lock->semaphore)->waiters))
+  // {
+  //   for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
+  //   {
+  //     t = list_entry (e, struct thread, elem);
+  //     lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
+  //   }
+  // }
 }
 
 
