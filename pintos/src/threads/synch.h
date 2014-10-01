@@ -4,6 +4,11 @@
 #include <list.h>
 #include <stdbool.h>
 
+#define max(a,b) \
+ ({ __typeof__ (a) _a = (a); \
+     __typeof__ (b) _b = (b); \
+   _a > _b ? _a : _b; })
+
 /* A counting semaphore. */
 struct semaphore 
   {
@@ -17,11 +22,19 @@ bool sema_try_down (struct semaphore *);
 void sema_up (struct semaphore *);
 void sema_self_test (void);
 
+/* One held semaphore in a list */
+struct held_elem
+  {
+    struct list_elem elem;
+    struct lock *lock;
+  };
+
 /* Lock. */
 struct lock
   {
-    struct thread *holder;      /* Thread holding lock (for debugging). */
-    struct semaphore semaphore; /* Binary semaphore controlling access. */
+    struct thread *holder;        /* Thread holding lock (for debugging). */
+    struct semaphore semaphore;   /* Binary semaphore controlling access. */
+    int largest_donated_priority; /* Store the largest donated priority in semaphore's waiters */
   };
 
 void lock_init (struct lock *);
@@ -29,6 +42,9 @@ void lock_acquire (struct lock *);
 bool lock_try_acquire (struct lock *);
 void lock_release (struct lock *);
 bool lock_held_by_current_thread (const struct lock *);
+
+bool scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux);
+int get_donated_priority (struct thread *t);
 
 /* Condition variable. */
 struct condition 

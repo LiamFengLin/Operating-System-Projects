@@ -195,7 +195,28 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
-  sema_down (&lock->semaphore);
+  enum intr_level old_level;
+  ASSERT ((&lock->semaphore) != NULL);
+
+  old_level = intr_disable ();
+  while ((&lock->semaphore)->value == 0) 
+    {
+      list_push_back(&(&lock->semaphore)->waiters, &(thread_current()->elem));
+      thread_current()->waiting_lock = lock;
+      update_all_donated_priority();
+      list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
+      thread_block();
+    }
+  lock_update_ldp(lock);
+  (&lock->semaphore)->value--;
+  struct held_elem held;
+  held.lock = lock;
+  list_push_back(&(thread_current()->held_lock), &held.elem);
+  thread_current()->waiting_lock = NULL;
+  update_all_donated_priority_with_schedule();
+  list_sort(&(&lock->semaphore)->waiters, (list_less_func *) &scheduler_less, NULL);
+  intr_set_level (old_level);
+
   lock->holder = thread_current ();
 }
 
@@ -231,7 +252,29 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   lock->holder = NULL;
-  sema_up (&lock->semaphore);
+  
+  enum intr_level old_level;
+  ASSERT ((&lock->semaphore) != NULL);
+
+  old_level = intr_disable ();
+  if (!list_empty (&(&lock->semaphore)->waiters)){
+    thread_unblock (list_entry (list_pop_back (&(&lock->semaphore)->waiters), struct thread, elem));
+  }
+  (&lock->semaphore)->value++;
+  if (!list_empty(&(thread_current()->held_lock)))
+  {
+    struct list_elem *e;
+    struct lock *s;
+    for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
+    {
+      s = list_entry(e, struct held_elem, elem)->lock;
+      if (s == lock) {
+        list_remove(e);
+        break;
+      }
+    }
+  }
+  intr_set_level (old_level);
 }
 
 /* Returns true if the current thread holds LOCK, false
@@ -334,4 +377,42 @@ cond_broadcast (struct condition *cond, struct lock *lock)
 
   while (!list_empty (&cond->waiters))
     cond_signal (cond, lock);
+}
+
+/* comparision function for priority scheduler. Decides who runs first. */
+bool
+scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct thread *thread_a = list_entry (a, struct thread, elem);
+  struct thread *thread_b = list_entry (b, struct thread, elem);
+  if (get_donated_priority(thread_a) > get_donated_priority(thread_b))
+  {
+    return true;
+  }
+  else if (get_donated_priority(thread_a) == get_donated_priority(thread_b))
+  {
+    if (thread_a->priority > thread_b->priority) return true;
+    else if (thread_a->priority == thread_b->priority) return false;
+    else return false;
+  }
+  else return false;
+}
+
+/* the donated priority is the larger between held_lock's largest ldp and its original priority */
+int
+get_donated_priority (struct thread *t)
+{
+  if (list_empty(&t->held_lock)) return t->priority;
+  else
+  {
+    struct list_elem *e;
+    struct lock *s;
+    int temp = 0;
+    for (e = list_begin (&t->held_lock); e != list_end (&t->held_lock); e = list_next (e))
+    {
+      s = list_entry(e, struct held_elem, elem)->lock;
+      temp = max(temp, s->largest_donated_priority);
+    }
+    return max(t->priority, temp);
+  } 
 }

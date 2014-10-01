@@ -75,6 +75,9 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 bool less (const struct list_elem *a, const struct list_elem *b, void *aux);
+void update_all_donated_priority();
+void update_all_donated_priority_with_schedule();
+void lock_update_ldp (struct lock *lock);
 
 
 /* Initializes the threading system by transforming the code
@@ -508,6 +511,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+  list_init (&(t->held_lock));
+  t->waiting_lock = NULL;
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
@@ -597,14 +602,16 @@ thread_schedule_tail (struct thread *prev)
 static void
 schedule (void) 
 {
+  ASSERT (intr_get_level () == INTR_OFF);
+  if (!list_empty(&ready_list))
+  {
+    list_sort(&ready_list, &scheduler_less, NULL);
+  }
   struct thread *cur = running_thread ();
   struct thread *next = next_thread_to_run ();
   struct thread *prev = NULL;
-
-  ASSERT (intr_get_level () == INTR_OFF);
   ASSERT (cur->status != THREAD_RUNNING);
   ASSERT (is_thread (next));
-
   if (cur != next)
     prev = switch_threads (cur, next);
   thread_schedule_tail (prev);
@@ -636,6 +643,66 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
     return false;
   }
 }
+
+
+/* update all donated priorities */
+void
+update_all_donated_priority()
+{
+  int i;
+  struct list_elem *e;
+  struct thread *t;
+  for (i=0; i<8; i++) {
+    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+    {
+      t = list_entry (e, struct thread, elem);
+      if (t->waiting_lock != NULL)
+      {
+        lock_update_ldp(t->waiting_lock);
+      }
+    }
+  }
+}
+
+/* update all donated priorities and run schedule */
+void
+update_all_donated_priority_with_schedule()
+{
+  int i;
+  struct list_elem *e;
+  struct thread *t;
+  for (i=0; i<8; i++) {
+    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+    {
+      t = list_entry (e, struct thread, elem);
+      if (t->waiting_lock != NULL)
+      {
+        lock_update_ldp(t->waiting_lock);
+      }
+    }
+  }
+  list_push_back(&ready_list, &thread_current()->elem);
+  thread_current()->status = THREAD_READY;
+  list_sort(&ready_list, (list_less_func *) &scheduler_less, NULL);
+  schedule();
+}
+
+/* update lock's largest_donated_priority */
+void
+lock_update_ldp (struct lock *lock)
+{
+  struct list_elem *e;
+  struct thread *t;
+  if (!list_empty(&(&lock->semaphore)->waiters))
+  {
+    for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
+    {
+      t = list_entry (e, struct thread, elem);
+      lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
+    }
+  }
+}
+
 
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
