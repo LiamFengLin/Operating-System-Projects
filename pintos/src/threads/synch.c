@@ -340,19 +340,6 @@ cond_init (struct condition *cond)
   list_init (&cond->waiters);
 }
 
-/* comparision function for priority scheduler. Decides who runs first. */
-bool
-cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
-{
-  struct semaphore *sema_a = &(list_entry(a, struct semaphore_elem, elem)->semaphore);
-  struct semaphore *sema_b = &(list_entry(b, struct semaphore_elem, elem)->semaphore);
-  struct thread *thread_a = list_entry(list_begin(&sema_a->waiters), struct thread, elem);
-  struct thread *thread_b = list_entry(list_begin(&sema_b->waiters), struct thread, elem);
-  if (thread_a->priority > thread_b->priority) return true;
-  else if (thread_a->priority == thread_b->priority) return true;
-  else return false;
-}
-
 /* Atomically releases LOCK and waits for COND to be signaled by
    some other piece of code.  After COND is signaled, LOCK is
    reacquired before returning.  LOCK must be held before calling
@@ -447,6 +434,18 @@ scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux)
   else return false;
 }
 
+/* comparision function for condvar. Decides who runs first. */
+bool
+cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct semaphore *sema_a = &(list_entry(a, struct semaphore_elem, elem)->semaphore);
+  struct semaphore *sema_b = &(list_entry(b, struct semaphore_elem, elem)->semaphore);
+  struct thread *thread_a = list_entry(list_begin(&sema_a->waiters), struct thread, elem);
+  struct thread *thread_b = list_entry(list_begin(&sema_b->waiters), struct thread, elem);
+  if (thread_a->priority > thread_b->priority) return true;
+  else if (thread_a->priority == thread_b->priority) return true;
+  else return false;
+}
 
 /* the donated priority is the larger between held_lock's largest ldp and its original priority */
 int
