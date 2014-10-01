@@ -410,7 +410,7 @@ scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux)
   else if (get_donated_priority(thread_a) == get_donated_priority(thread_b))
   {
     if (thread_a->priority > thread_b->priority) return true;
-    else if (thread_a->priority == thread_b->priority) return false;
+    else if (thread_a->priority == thread_b->priority) return true;
     else return false;
   }
   else return false;
