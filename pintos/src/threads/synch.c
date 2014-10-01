@@ -265,17 +265,17 @@ lock_release (struct lock *lock)
   {
     struct list_elem *e;
     struct lock *s;
-    bool found = false;
+    // bool found = false;
     for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
     {
       s = list_entry(e, struct held_elem, elem)->lock;
       if (s->holder == NULL) {
         list_remove(e);
-        found = true;
+        // found = true;
         break;
       }
     }
-    ASSERT (!found);
+    // ASSERT (!found);
   }
   intr_set_level (old_level);
 }
