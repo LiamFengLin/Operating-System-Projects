@@ -276,22 +276,22 @@ lock_release (struct lock *lock)
     thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
   }
   (&lock->semaphore)->value++;
-  if (!list_empty(&(thread_current()->held_lock)))
-  {
-    struct list_elem *e;
-    struct lock *s;
-    bool found = false;
-    for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
-    {
-      s = list_entry(e, struct held_elem, elem)->lock;
-      if (s->holder == NULL) {
-        list_remove(e);
-        found = true;
-        break;
-      }
-    }
-    // ASSERT (found);
-  }
+  // if (!list_empty(&(thread_current()->held_lock)))
+  // {
+  //   struct list_elem *e;
+  //   struct lock *s;
+  //   bool found = false;
+  //   for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
+  //   {
+  //     s = list_entry(e, struct held_elem, elem)->lock;
+  //     if (s->holder == NULL) {
+  //       list_remove(e);
+  //       found = true;
+  //       break;
+  //     }
+  //   }
+  //   // ASSERT (found);
+  // }
   intr_set_level (old_level);
 }
 
