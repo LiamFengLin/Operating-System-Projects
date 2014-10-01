@@ -383,7 +383,14 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
+  enum intr_level old_level;
+  old_level = intr_disable ();
   thread_current ()->priority = new_priority;
+  if (thread_current()->waiting_lock != NULL)
+  {
+    update_all_donated_priority();
+  }
+  intr_set_level (old_level);
 }
 
 /* Returns the current thread's priority. */
@@ -649,26 +656,26 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 void
 update_all_donated_priority()
 {
-  // int i;
-  // struct list_elem *e;
-  // struct thread *t;
-  // for (i=0; i<8; i++) {
-  //   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-  //   {
-  //     t = list_entry (e, struct thread, elem);
-  //     if (t->waiting_lock != NULL)
-  //     {
-  //       lock_update_ldp(t->waiting_lock);
-  //     }
-  //   }
-  // }
+  int i;
+  struct list_elem *e;
+  struct thread *t;
+  for (i=0; i<8; i++) {
+    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+    {
+      t = list_entry (e, struct thread, elem);
+      if (t->waiting_lock != NULL)
+      {
+        lock_update_ldp(t->waiting_lock);
+      }
+    }
+  }
 }
 
 /* update all donated priorities and run schedule */
 void
 update_all_donated_priority_with_schedule()
 {
-  // update_all_donated_priority();
+  update_all_donated_priority();
   list_push_back(&ready_list, &thread_current()->elem);
   thread_current()->status = THREAD_READY;
   list_sort(&ready_list, (list_less_func *) &scheduler_less, NULL);
