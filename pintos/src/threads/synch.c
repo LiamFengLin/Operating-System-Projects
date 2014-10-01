@@ -196,25 +196,32 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
-  enum intr_level old_level;
-  ASSERT ((&lock->semaphore) != NULL);
+  sema_down (&lock->semaphore);
+  lock->holder = thread_current ();
 
-  old_level = intr_disable ();
-  while ((&lock->semaphore)->value == 0) 
-    {
-      list_insert_ordered (&(&lock->semaphore)->waiters, &(thread_current()->elem), (list_less_func *) &scheduler_less, NULL);
-      thread_current()->waiting_lock = lock;
-      update_all_donated_priority();
-      thread_block();
-    }
-  lock->holder = thread_current();
-  (&lock->semaphore)->value--;
-  // struct held_elem held;
-  // held.lock = lock;
-  // list_push_front(&(thread_current()->held_lock), &held.elem);
-  thread_current()->waiting_lock = NULL;
-  update_all_donated_priority_with_schedule();
-  intr_set_level (old_level);
+  // ASSERT (lock != NULL);
+  // ASSERT (!intr_context ());
+  // ASSERT (!lock_held_by_current_thread (lock));
+
+  // enum intr_level old_level;
+  // ASSERT ((&lock->semaphore) != NULL);
+
+  // old_level = intr_disable ();
+  // while ((&lock->semaphore)->value == 0) 
+  //   {
+  //     list_insert_ordered (&(&lock->semaphore)->waiters, &(thread_current()->elem), (list_less_func *) &scheduler_less, NULL);
+  //     thread_current()->waiting_lock = lock;
+  //     update_all_donated_priority();
+  //     thread_block();
+  //   }
+  // lock->holder = thread_current();
+  // (&lock->semaphore)->value--;
+  // // struct held_elem held;
+  // // held.lock = lock;
+  // // list_push_front(&(thread_current()->held_lock), &held.elem);
+  // thread_current()->waiting_lock = NULL;
+  // update_all_donated_priority_with_schedule();
+  // intr_set_level (old_level);
 
 }
 
@@ -232,26 +239,36 @@ lock_try_acquire (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (!lock_held_by_current_thread (lock));
 
-  enum intr_level old_level;
-  ASSERT ((&lock->semaphore) != NULL);
-
-  old_level = intr_disable ();
-  if ((&lock->semaphore)->value > 0) 
-    {
-      lock->holder = thread_current();
-      (&lock->semaphore)->value--;
-      // struct held_elem held;
-      // held.lock = lock;
-      // list_push_front(&(thread_current()->held_lock), &held.elem);
-      thread_current()->waiting_lock = NULL;
-      update_all_donated_priority_with_schedule();
-      success = true; 
-    }
-  else
-    success = false;
-  intr_set_level (old_level);
-
+  success = sema_try_down (&lock->semaphore);
+  if (success)
+    lock->holder = thread_current ();
   return success;
+
+  // bool success;
+
+  // ASSERT (lock != NULL);
+  // ASSERT (!lock_held_by_current_thread (lock));
+
+  // enum intr_level old_level;
+  // ASSERT ((&lock->semaphore) != NULL);
+
+  // old_level = intr_disable ();
+  // if ((&lock->semaphore)->value > 0) 
+  //   {
+  //     lock->holder = thread_current();
+  //     (&lock->semaphore)->value--;
+  //     // struct held_elem held;
+  //     // held.lock = lock;
+  //     // list_push_front(&(thread_current()->held_lock), &held.elem);
+  //     thread_current()->waiting_lock = NULL;
+  //     update_all_donated_priority_with_schedule();
+  //     success = true; 
+  //   }
+  // else
+  //   success = false;
+  // intr_set_level (old_level);
+
+  // return success;
 }
 
 /* Releases LOCK, which must be owned by the current thread.
@@ -266,15 +283,13 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   lock->holder = NULL;
+  sema_up (&lock->semaphore);
 
-  enum intr_level old_level;
-  ASSERT ((&lock->semaphore) != NULL);
-
-  old_level = intr_disable ();
-  if (!list_empty (&(&lock->semaphore)->waiters)){
-    thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
-  }
-  (&lock->semaphore)->value++;
+  // old_level = intr_disable ();
+  // if (!list_empty (&(&lock->semaphore)->waiters)){
+  //   thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
+  // }
+  // (&lock->semaphore)->value++;
   // if (!list_empty(&(thread_current()->held_lock)))
   // {
   //   struct list_elem *e;
@@ -289,11 +304,12 @@ lock_release (struct lock *lock)
   //       break;
   //     }
   //   }
-  //   // ASSERT (found);
+  //   ASSERT (found);
   // }
-  intr_set_level (old_level);
-  thread_yield();
+  // intr_set_level (old_level);
 }
+
+
 
 /* Returns true if the current thread holds LOCK, false
    otherwise.  (Note that testing whether some other thread holds
