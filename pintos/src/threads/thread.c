@@ -263,9 +263,9 @@ check_should_wake_up (int64_t current_ticks)
 void
 thread_sleep (int64_t wake_up_time) 
 {
+  struct thread* current_thread = thread_current();
   sema_init (&current_thread->sema, 0);
   enum intr_level old_level = intr_disable ();
-  struct thread* current_thread = thread_current();
   current_thread->wake_up_time = wake_up_time;
   list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &less, NULL);
   intr_set_level(old_level);
