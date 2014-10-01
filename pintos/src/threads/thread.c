@@ -212,8 +212,7 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
-  schedule();
-
+  update_all_donated_priority_with_schedule();
   return tid;
 }
 
