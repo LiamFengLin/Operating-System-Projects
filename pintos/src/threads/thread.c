@@ -212,7 +212,11 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+
+  enum intr_level old_level;
+  old_level = intr_disable ();
   update_all_donated_priority_with_schedule();
+  intr_set_level (old_level);
   return tid;
 }
 
@@ -280,7 +284,6 @@ void
 thread_unblock (struct thread *t) 
 {
   enum intr_level old_level;
-
   ASSERT (is_thread (t));
 
   old_level = intr_disable ();
