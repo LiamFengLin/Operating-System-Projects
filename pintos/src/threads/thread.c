@@ -550,7 +550,7 @@ next_thread_to_run (void)
   if (list_empty (&ready_list))
     return idle_thread;
   else
-    return list_entry (list_pop_front (&ready_list), struct thread, elem);
+    return list_entry (list_pop_back (&ready_list), struct thread, elem);
 }
 
 /* Completes a thread switch by activating the new thread's page
@@ -656,19 +656,19 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 void
 update_all_donated_priority()
 {
-  int i;
-  struct list_elem *e;
-  struct thread *t;
-  for (i=0; i<8; i++) {
-    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-    {
-      t = list_entry (e, struct thread, elem);
-      if (t->waiting_lock != NULL)
-      {
-        lock_update_ldp(t->waiting_lock);
-      }
-    }
-  }
+  // int i;
+  // struct list_elem *e;
+  // struct thread *t;
+  // for (i=0; i<8; i++) {
+  //   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+  //   {
+  //     t = list_entry (e, struct thread, elem);
+  //     if (t->waiting_lock != NULL)
+  //     {
+  //       lock_update_ldp(t->waiting_lock);
+  //     }
+  //   }
+  // }
 }
 
 /* update all donated priorities and run schedule */
