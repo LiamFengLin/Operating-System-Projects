@@ -344,20 +344,12 @@ cond_init (struct condition *cond)
 bool
 cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
-  struct semaphore *sema_a = &list_entry (a, struct semaphore_elem, elem)->semaphore;
-  struct semaphore *sema_b = &list_entry (b, struct semaphore_elem, elem)->semaphore;
+  struct semaphore *sema_a = &(list_entry(a, struct semaphore_elem, elem)->semaphore);
+  struct semaphore *sema_b = &(list_entry(b, struct semaphore_elem, elem)->semaphore);
   struct thread *thread_a = list_entry(list_begin(&sema_a->waiters), struct thread, elem);
   struct thread *thread_b = list_entry(list_begin(&sema_b->waiters), struct thread, elem);
-  if (get_donated_priority(thread_a) > get_donated_priority(thread_b))
-  {
-    return true;
-  }
-  else if (get_donated_priority(thread_a) == get_donated_priority(thread_b))
-  {
-    if (thread_a->priority > thread_b->priority) return true;
-    else if (thread_a->priority == thread_b->priority) return false;
-    else return false;
-  }
+  if (thread_a->priority > thread_b->priority) return true;
+  else if (thread_a->priority == thread_b->priority) return true;
   else return false;
 }
 
