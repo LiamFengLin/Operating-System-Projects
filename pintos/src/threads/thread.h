@@ -90,6 +90,7 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     int64_t wake_up_time;               /* Stores the number of ticks since boot that the thread plans to wake up */
+    struct list_elem allelem;           /* List element for all threads list. */
     struct list held_lock;              /* pointer to a list of locks that the current thread is holding */
     struct lock *waiting_lock;          /* pointer to the lock that the thread is waiting for */
     /* Shared between thread.c and synch.c. */
