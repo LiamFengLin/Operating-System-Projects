@@ -451,7 +451,10 @@ cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
 int
 get_donated_priority (struct thread *t)
 {
-  if (list_empty(&t->held_lock)) return t->priority;
+  if (list_empty(&t->held_lock))
+  {
+    return t->priority;
+  }
   else
   {
     msg (list_begin(&t->held_lock));
