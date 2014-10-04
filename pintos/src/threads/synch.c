@@ -457,7 +457,7 @@ get_donated_priority (struct thread *t)
   }
   else
   {
-    printf("%d\n", list_empty(&t->held_lock));
+    msg("%d\n", list_empty(&t->held_lock));
     struct list_elem *e;
     struct lock *s;
     int temp = 0;
