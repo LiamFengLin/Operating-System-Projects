@@ -518,7 +518,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
-  list_init (&(t->held_lock));
+  list_init (&t->held_lock);
   t->waiting_lock = NULL;
 
   old_level = intr_disable ();
