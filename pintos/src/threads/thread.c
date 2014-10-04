@@ -671,7 +671,7 @@ update_all_donated_priority()
 void
 update_all_donated_priority_with_schedule()
 {
-  update_all_donated_priority();
+  // update_all_donated_priority();
   thread_yield();
 }
 
