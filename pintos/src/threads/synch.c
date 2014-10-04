@@ -451,7 +451,7 @@ cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
 int
 get_donated_priority (struct thread *t)
 {
-  printf("%d/n", list_size(&t->held_lock));
+  printf("%d/n", list_empty(&t->held_lock));
   return t->priority;
   // if (list_empty(&t->held_lock)) return t->priority;
   // else
