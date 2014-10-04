@@ -215,7 +215,7 @@ thread_create (const char *name, int priority,
   old_level = intr_disable ();
   /* Add to run queue. */
   thread_unblock (t);
-  update_all_donated_priority_with_schedule();
+  thread_yield();
   intr_set_level (old_level);
   return tid;
 }
@@ -652,18 +652,18 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 void
 update_all_donated_priority()
 {
-  int i;
-  struct list_elem *e;
-  struct thread *t;
-  for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-  {
-    t = list_entry (e, struct thread, elem);
-    if (t->waiting_lock != NULL)
-    {
-      lock_update_ldp(t->waiting_lock);
-    }
-  }
+  // int i;
+  // struct list_elem *e;
+  // struct thread *t;
   // for (i=0; i<8; i++) {
+  //   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+  //   {
+  //     t = list_entry (e, struct thread, elem);
+  //     if (t->waiting_lock != NULL)
+  //     {
+  //       lock_update_ldp(t->waiting_lock);
+  //     }
+  //   }
   // }
 }
 
