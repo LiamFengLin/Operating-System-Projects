@@ -454,16 +454,14 @@ get_donated_priority (struct thread *t)
   if (list_empty(&t->held_lock)) return t->priority;
   else
   {
-    // printf("not list_empty\n");
-    // struct list_elem *e;
-    // struct lock *s;
-    // int temp = 0;
+    struct list_elem *e;
+    struct lock *s;
+    int temp = 0;
     // for (e = list_begin (&t->held_lock); e != list_end (&t->held_lock); e = list_next (e))
     // {
     //   s = list_entry(e, struct held_elem, elem)->lock;
     //   temp = max(temp, s->largest_donated_priority);
     // }
-    // return max(t->priority, temp);
-    return t->priority;
+    return max(t->priority, temp);
   } 
 }
