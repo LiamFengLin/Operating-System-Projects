@@ -192,36 +192,38 @@ lock_init (struct lock *lock)
 void
 lock_acquire (struct lock *lock)
 {
-  ASSERT (lock != NULL);
-  ASSERT (!intr_context ());
-  ASSERT (!lock_held_by_current_thread (lock));
-
-  sema_down (&lock->semaphore);
-  lock->holder = thread_current ();
-
   // ASSERT (lock != NULL);
   // ASSERT (!intr_context ());
   // ASSERT (!lock_held_by_current_thread (lock));
 
-  // enum intr_level old_level;
-  // ASSERT ((&lock->semaphore) != NULL);
+  // sema_down (&lock->semaphore);
+  // lock->holder = thread_current ();
 
-  // old_level = intr_disable ();
-  // while ((&lock->semaphore)->value == 0) 
-  //   {
-  //     list_insert_ordered (&(&lock->semaphore)->waiters, &(thread_current()->elem), (list_less_func *) &scheduler_less, NULL);
-  //     thread_current()->waiting_lock = lock;
-  //     update_all_donated_priority();
-  //     thread_block();
-  //   }
-  // lock->holder = thread_current();
-  // (&lock->semaphore)->value--;
-  // // struct held_elem held;
-  // // held.lock = lock;
-  // // list_push_front(&(thread_current()->held_lock), &held.elem);
-  // thread_current()->waiting_lock = NULL;
-  // update_all_donated_priority_with_schedule();
-  // intr_set_level (old_level);
+  ASSERT (lock != NULL);
+  ASSERT (!intr_context ());
+  ASSERT (!lock_held_by_current_thread (lock));
+
+  enum intr_level old_level;
+  ASSERT ((&lock->semaphore) != NULL);
+
+  old_level = intr_disable ();
+  while ((&lock->semaphore)->value == 0) 
+    {
+      list_insert_ordered (&(&lock->semaphore)->waiters, &(thread_current()->elem), (list_less_func *) &scheduler_less, NULL);
+      thread_current()->waiting_lock = lock;
+      update_all_donated_priority();
+      thread_block();
+    }
+  lock->holder = thread_current();
+  (&lock->semaphore)->value--;
+  lock->held.lock = lock;
+  list_push_front(&(thread_current()->held_lock), &lock->held.elem);
+  ASSERT(!list_empty(&(thread_current()->held_lock)));
+  ASSERT(list_head(&(thread_current()->held_lock))->next != list_tail(&(thread_current()->held_lock)));
+  // ASSERT(!list_empty(&(thread_current()->held_lock)));
+  thread_current()->waiting_lock = NULL;
+  update_all_donated_priority();
+  intr_set_level (old_level);
 
 }
 
@@ -234,41 +236,41 @@ lock_acquire (struct lock *lock)
 bool
 lock_try_acquire (struct lock *lock)
 {
-  bool success;
-
-  ASSERT (lock != NULL);
-  ASSERT (!lock_held_by_current_thread (lock));
-
-  success = sema_try_down (&lock->semaphore);
-  if (success)
-    lock->holder = thread_current ();
-  return success;
-
   // bool success;
 
   // ASSERT (lock != NULL);
   // ASSERT (!lock_held_by_current_thread (lock));
 
-  // enum intr_level old_level;
-  // ASSERT ((&lock->semaphore) != NULL);
-
-  // old_level = intr_disable ();
-  // if ((&lock->semaphore)->value > 0) 
-  //   {
-  //     lock->holder = thread_current();
-  //     (&lock->semaphore)->value--;
-  //     // struct held_elem held;
-  //     // held.lock = lock;
-  //     // list_push_front(&(thread_current()->held_lock), &held.elem);
-  //     thread_current()->waiting_lock = NULL;
-  //     update_all_donated_priority_with_schedule();
-  //     success = true; 
-  //   }
-  // else
-  //   success = false;
-  // intr_set_level (old_level);
-
+  // success = sema_try_down (&lock->semaphore);
+  // if (success)
+  //   lock->holder = thread_current ();
   // return success;
+
+  bool success;
+
+  ASSERT (lock != NULL);
+  ASSERT (!lock_held_by_current_thread (lock));
+
+  enum intr_level old_level;
+  ASSERT ((&lock->semaphore) != NULL);
+
+  old_level = intr_disable ();
+  if ((&lock->semaphore)->value > 0) 
+    {
+      lock->holder = thread_current();
+      (&lock->semaphore)->value--;
+      lock->held.lock = lock;
+      list_push_front(&(thread_current()->held_lock), &lock->held.elem);
+      thread_current()->waiting_lock = NULL;
+      // update_all_donated_priority();
+      success = true; 
+    }
+  else
+    success = false;
+  intr_set_level (old_level);
+  thread_yield();
+
+  return success;
 }
 
 /* Releases LOCK, which must be owned by the current thread.
@@ -283,30 +285,32 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   lock->holder = NULL;
-  sema_up (&lock->semaphore);
+  // sema_up (&lock->semaphore);
+  enum intr_level old_level;
 
-  // old_level = intr_disable ();
-  // if (!list_empty (&(&lock->semaphore)->waiters)){
-  //   thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
-  // }
-  // (&lock->semaphore)->value++;
-  // if (!list_empty(&(thread_current()->held_lock)))
-  // {
-  //   struct list_elem *e;
-  //   struct lock *s;
-  //   bool found = false;
-  //   for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
-  //   {
-  //     s = list_entry(e, struct held_elem, elem)->lock;
-  //     if (s->holder == NULL) {
-  //       list_remove(e);
-  //       found = true;
-  //       break;
-  //     }
-  //   }
-  //   ASSERT (found);
-  // }
-  // intr_set_level (old_level);
+  old_level = intr_disable ();
+  if (!list_empty (&(&lock->semaphore)->waiters)){
+    thread_unblock (list_entry (list_pop_front (&(&lock->semaphore)->waiters), struct thread, elem));
+  }
+  (&lock->semaphore)->value++;
+  if (!list_empty(&(thread_current()->held_lock)))
+  {
+    struct list_elem *e;
+    struct lock *s;
+    bool found = false;
+    for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
+    {
+      s = list_entry(e, struct held_elem, elem)->lock;
+      if (s->holder == NULL) {
+        list_remove(e);
+        found = true;
+        break;
+      }
+    }
+    // ASSERT (found);
+  }
+  intr_set_level (old_level);
+  thread_yield();
 }
 
 
@@ -451,17 +455,18 @@ cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
 int
 get_donated_priority (struct thread *t)
 {
+  // return t->priority;
   if (list_empty(&t->held_lock)) return t->priority;
   else
   {
     struct list_elem *e;
     struct lock *s;
     int temp = 0;
-    // for (e = list_begin (&t->held_lock); e != list_end (&t->held_lock); e = list_next (e))
-    // {
-    //   s = list_entry(e, struct held_elem, elem)->lock;
-    //   temp = max(temp, s->largest_donated_priority);
-    // }
+    for (e = list_begin (&t->held_lock); e != list_end (&t->held_lock); e = list_next (e))
+    {
+      s = list_entry(e, struct held_elem, elem)->lock;
+      temp = max(temp, s->largest_donated_priority);
+    }
     return max(t->priority, temp);
   } 
 }
