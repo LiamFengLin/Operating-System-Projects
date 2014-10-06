@@ -687,8 +687,8 @@ lock_update_ldp (struct lock *lock)
   {
     for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
     {
-      // t = list_entry (e, struct thread, elem);
-      // lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
+      t = list_entry (e, struct thread, elem);
+      lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
     }
   }
 }
