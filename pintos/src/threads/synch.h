@@ -23,11 +23,11 @@ void sema_up (struct semaphore *);
 void sema_self_test (void);
 
 /* One held semaphore in a list */
-struct held_elem
-  {
-    struct list_elem elem;
-    struct lock *lock;
-  };
+// struct held_elem
+//   {
+//     struct list_elem elem;
+//     struct lock *lock;
+//   };
 
 /* Lock. */
 struct lock
@@ -35,7 +35,7 @@ struct lock
     struct thread *holder;        /* Thread holding lock (for debugging). */
     struct semaphore semaphore;   /* Binary semaphore controlling access. */
     int largest_donated_priority; /* Store the largest donated priority in semaphore's waiters */
-    struct held_elem held;
+    struct list_elem holder_elem;
   };
 
 void lock_init (struct lock *);
@@ -45,6 +45,8 @@ void lock_release (struct lock *);
 bool lock_held_by_current_thread (const struct lock *);
 
 bool scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux);
+bool scheduler_less_allelem (const struct list_elem *a, const struct list_elem *b, void *aux);
+bool held_lock_less (const struct list_elem *a, const struct list_elem *b, void *aux);
 int get_donated_priority (struct thread *t);
 
 /* Condition variable. */

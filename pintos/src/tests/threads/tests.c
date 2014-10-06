@@ -43,9 +43,9 @@ run_test (const char *name)
     if (!strcmp (name, t->name))
       {
         test_name = name;
-        //msg ("begin");
+        msg ("begin");
         t->function ();
-        //msg ("end");
+        msg ("end");
         return;
       }
   PANIC ("no test named \"%s\"", name);

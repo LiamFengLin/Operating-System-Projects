@@ -246,18 +246,33 @@ check_should_wake_up (int64_t current_ticks)
     return 0;
   }
   e = list_back(&blocked_list);
-  t = list_entry (e, struct thread, elem);
+  t = list_entry (e, struct thread, sleep_sema);
   ASSERT (is_thread(t));
   while (t->wake_up_time <= current_ticks) {
     list_remove(e);
     list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_less, NULL);
+    //thread_unblock(t);
     if (list_empty(&blocked_list)) {
       break;
     }
     e = list_back(&blocked_list);
-    t = list_entry (e, struct thread, elem);
+    t = list_entry (e, struct thread, sleep_sema);
     ASSERT (is_thread(t));
   }
+  // e = list_back(&blocked_list);
+  // ASSERT (is_thread(t));
+  // while (e != list_end(&blocked_list)) {
+  //   t = list_entry (e, struct thread, elem);
+  //   if (t->wake_up_time > current_ticks) {
+  //     break;
+  //   }
+  //   list_remove(e);
+  //   thread_unblock(t);
+  //   if (list_empty(&blocked_list)) {
+  //     break;
+  //   }
+  //   e = list_back(&blocked_list);
+  // }
   intr_set_level(old_level);
 }
 
@@ -267,7 +282,7 @@ thread_sleep (int64_t wake_up_time)
   enum intr_level old_level = intr_disable ();
   struct thread* current_thread = thread_current();
   current_thread->wake_up_time = wake_up_time;
-  list_insert_ordered (&blocked_list, &current_thread->elem, (list_less_func *) &less, NULL);
+  list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &less, NULL);
   thread_block();
   intr_set_level(old_level);
 }
@@ -522,7 +537,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->waiting_lock = NULL;
 
   old_level = intr_disable ();
-  list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &scheduler_less, NULL);
+  list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &scheduler_less_allelem, NULL);
   intr_set_level (old_level);
 }
 
@@ -638,8 +653,8 @@ allocate_tid (void)
 bool
 less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
-  struct thread *thread_a = list_entry (a, struct thread, elem);
-  struct thread *thread_b = list_entry (b, struct thread, elem);
+  struct thread *thread_a = list_entry (a, struct thread, sleep_sema);
+  struct thread *thread_b = list_entry (b, struct thread, sleep_sema);
   if (thread_a->wake_up_time > thread_b->wake_up_time) {
     return true;
   } else {
@@ -685,11 +700,14 @@ lock_update_ldp (struct lock *lock)
   struct thread *t;
   if (!list_empty(&(&lock->semaphore)->waiters))
   {
+    //enum intr_level old_level;
+    //old_level = intr_disable ();
     for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
     {
       t = list_entry (e, struct thread, elem);
       lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
     }
+    //intr_set_level (old_level);
   }
 }
 

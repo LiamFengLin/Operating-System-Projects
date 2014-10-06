@@ -214,10 +214,11 @@ lock_acquire (struct lock *lock)
       update_all_donated_priority();
       thread_block();
     }
-  lock->holder = thread_current();
   (&lock->semaphore)->value--;
-  lock->held.lock = lock;
-  list_push_front(&(thread_current()->held_lock), &lock->held.elem);
+  lock->holder = thread_current();
+  //lock->held.lock = lock;
+  //list_push_front(&(thread_current()->held_lock), &lock->holder_elem);
+  list_insert_ordered (&(thread_current()->held_lock), &lock->holder_elem, (list_less_func *) &held_lock_less, NULL);
   ASSERT(!list_empty(&(thread_current()->held_lock)));
   ASSERT(list_head(&(thread_current()->held_lock))->next != list_tail(&(thread_current()->held_lock)));
   // ASSERT(!list_empty(&(thread_current()->held_lock)));
@@ -259,8 +260,8 @@ lock_try_acquire (struct lock *lock)
     {
       lock->holder = thread_current();
       (&lock->semaphore)->value--;
-      lock->held.lock = lock;
-      list_push_front(&(thread_current()->held_lock), &lock->held.elem);
+      //lock->held.lock = lock;
+      list_push_front(&(thread_current()->held_lock), &lock->holder_elem);
       thread_current()->waiting_lock = NULL;
       // update_all_donated_priority();
       success = true; 
@@ -300,7 +301,7 @@ lock_release (struct lock *lock)
     bool found = false;
     for (e = list_begin(&(thread_current()->held_lock)); e != list_end(&(thread_current()->held_lock)); e = list_next(e))
     {
-      s = list_entry(e, struct held_elem, elem)->lock;
+      s = list_entry(e, struct lock, holder_elem);
       if (s->holder == NULL) {
         list_remove(e);
         found = true;
@@ -438,6 +439,42 @@ scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux)
   else return false;
 }
 
+bool
+scheduler_less_allelem (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct thread *thread_a = list_entry (a, struct thread, allelem);
+  struct thread *thread_b = list_entry (b, struct thread, allelem);
+  if (get_donated_priority(thread_a) > get_donated_priority(thread_b))
+  {
+    return true;
+  }
+  else if (get_donated_priority(thread_a) == get_donated_priority(thread_b))
+  {
+    if (thread_a->priority > thread_b->priority) return true;
+    else if (thread_a->priority == thread_b->priority) return false;
+    else return false;
+  }
+  else return false;
+}
+
+
+bool
+held_lock_less (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct lock *lock_a = list_entry (a, struct lock, holder_elem);
+  struct lock *lock_b = list_entry (b, struct lock, holder_elem);
+  if (lock_a->holder && !(lock_b->holder))
+  {
+    return true;
+  }
+  else if (lock_a->holder && lock_b->holder)
+  {
+    return true;
+  }
+  else return false;
+}
+
+
 /* comparision function for condvar. Decides who runs first. */
 bool
 cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
@@ -456,17 +493,22 @@ int
 get_donated_priority (struct thread *t)
 {
   //return t->priority;
-  if (list_empty(&t->held_lock)) return t->priority;
+  struct list *held_list = &t->held_lock;
+  if (list_empty(&held_list)) return t->priority;
   else
   {
     struct list_elem *e;
     struct lock *s;
     int temp = 0;
-    for (e = list_begin (&t->held_lock); e != list_end (&t->held_lock); e = list_next (e))
-    {
-      s = list_entry(e, struct held_elem, elem)->lock;
-      temp = max(temp, s->largest_donated_priority);
-    }
+
+    //e = list_back(&held_list);
+    //s = list_entry (e, struct lock, holder_elem);
+    // for (e = list_begin (held_list); e != list_end (held_list); e = list_next (e))
+    // {
+    //   // s = list_entry(e, struct lock, holder_elem);
+    //   // temp = max(temp, s->largest_donated_priority);
+    // }
     return max(t->priority, temp);
+    //return 
   } 
 }
