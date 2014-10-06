@@ -251,7 +251,7 @@ check_should_wake_up (int64_t current_ticks)
   while (t->wake_up_time <= current_ticks) {
     list_remove(e);
     list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_less, NULL);
-    //thread_unblock(t);
+    thread_unblock(t);
     if (list_empty(&blocked_list)) {
       break;
     }
