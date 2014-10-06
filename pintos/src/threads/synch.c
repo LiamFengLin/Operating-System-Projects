@@ -501,13 +501,14 @@ get_donated_priority (struct thread *t)
     struct lock *s;
     int temp = 0;
 
-    //e = list_back(&held_list);
-    //s = list_entry (e, struct lock, holder_elem);
-    // for (e = list_begin (held_list); e != list_end (held_list); e = list_next (e))
-    // {
-    //   // s = list_entry(e, struct lock, holder_elem);
-    //   // temp = max(temp, s->largest_donated_priority);
-    // }
+    // e = list_back(&held_list);
+    // s = list_entry (e, struct lock, holder_elem);
+    for (e = list_begin (held_list); e != list_end (held_list); e = list_next (e))
+    {
+
+      // s = list_entry(e, struct lock, holder_elem);
+      // temp = max(temp, s->largest_donated_priority);
+    }
     return max(t->priority, temp);
     //return 
   } 

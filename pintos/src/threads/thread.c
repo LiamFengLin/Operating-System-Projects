@@ -246,17 +246,17 @@ check_should_wake_up (int64_t current_ticks)
     return 0;
   }
   e = list_back(&blocked_list);
-  t = list_entry (e, struct thread, sleep_sema);
+  t = list_entry (e, struct thread, elem);
   ASSERT (is_thread(t));
   while (t->wake_up_time <= current_ticks) {
     list_remove(e);
     list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_less, NULL);
-    thread_unblock(t);
+    //thread_unblock(t);
     if (list_empty(&blocked_list)) {
       break;
     }
     e = list_back(&blocked_list);
-    t = list_entry (e, struct thread, sleep_sema);
+    t = list_entry (e, struct thread, elem);
     ASSERT (is_thread(t));
   }
   // e = list_back(&blocked_list);
@@ -282,7 +282,7 @@ thread_sleep (int64_t wake_up_time)
   enum intr_level old_level = intr_disable ();
   struct thread* current_thread = thread_current();
   current_thread->wake_up_time = wake_up_time;
-  list_insert_ordered (&blocked_list, &current_thread->sleep_sema, (list_less_func *) &less, NULL);
+  list_insert_ordered (&blocked_list, &current_thread->elem, (list_less_func *) &less, NULL);
   thread_block();
   intr_set_level(old_level);
 }
@@ -653,8 +653,8 @@ allocate_tid (void)
 bool
 less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
-  struct thread *thread_a = list_entry (a, struct thread, sleep_sema);
-  struct thread *thread_b = list_entry (b, struct thread, sleep_sema);
+  struct thread *thread_a = list_entry (a, struct thread, elem);
+  struct thread *thread_b = list_entry (b, struct thread, elem);
   if (thread_a->wake_up_time > thread_b->wake_up_time) {
     return true;
   } else {
