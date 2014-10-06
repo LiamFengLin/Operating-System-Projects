@@ -658,9 +658,11 @@ update_all_donated_priority()
   for (i=0; i<8; i++) {
     for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
     {
-      t = list_entry (e, struct thread, elem);
+      t = list_entry (e, struct thread, allelem);
       if (t->waiting_lock != NULL)
       {
+        //printf("%d\n", list_size(&(&(t->waiting_lock)->semaphore)->waiters)); 
+        //ASSERT(t->waiting_lock != NULL);       
         lock_update_ldp(t->waiting_lock);
       }
     }
@@ -685,8 +687,8 @@ lock_update_ldp (struct lock *lock)
   {
     for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
     {
-      t = list_entry (e, struct thread, elem);
-      lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
+      // t = list_entry (e, struct thread, elem);
+      // lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
     }
   }
 }
