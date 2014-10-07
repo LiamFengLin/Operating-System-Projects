@@ -22,13 +22,6 @@ bool sema_try_down (struct semaphore *);
 void sema_up (struct semaphore *);
 void sema_self_test (void);
 
-/* One held semaphore in a list */
-// struct held_elem
-//   {
-//     struct list_elem elem;
-//     struct lock *lock;
-//   };
-
 /* Lock. */
 struct lock
   {
@@ -46,6 +39,7 @@ bool lock_held_by_current_thread (const struct lock *);
 
 bool scheduler_less (const struct list_elem *a, const struct list_elem *b, void *aux);
 bool scheduler_less_allelem (const struct list_elem *a, const struct list_elem *b, void *aux);
+bool scheduler_less_sema_elem (const struct list_elem *a, const struct list_elem *b, void *aux);
 bool held_lock_less (const struct list_elem *a, const struct list_elem *b, void *aux);
 int get_donated_priority (struct thread *t);
 

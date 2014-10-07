@@ -94,7 +94,7 @@ struct thread
     struct lock *waiting_lock;          /* pointer to the lock that the thread is waiting for */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-
+    struct list_elem sema_elem;
     //struct list_elem sleep_sema;
 
 #ifdef USERPROG

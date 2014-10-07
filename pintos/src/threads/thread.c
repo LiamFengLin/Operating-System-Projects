@@ -215,8 +215,9 @@ thread_create (const char *name, int priority,
   old_level = intr_disable ();
   /* Add to run queue. */
   thread_unblock (t);
-  update_all_donated_priority_with_schedule();
+  update_all_donated_priority();
   intr_set_level (old_level);
+  thread_yield();
   return tid;
 }
 
@@ -404,15 +405,16 @@ thread_set_priority (int new_priority)
   enum intr_level old_level;
   old_level = intr_disable ();
   thread_current ()->priority = new_priority;
-  update_all_donated_priority_with_schedule();
+  update_all_donated_priority();
   intr_set_level (old_level);
+  thread_yield();
 }
 
 /* Returns the current thread's priority. */
 int
 thread_get_priority (void) 
 {
-  return thread_current ()->priority;
+  return get_donated_priority(thread_current());
 }
 
 /* Sets the current thread's nice value to NICE. */
@@ -534,6 +536,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_init (&t->held_lock);
+  // need fix
   t->waiting_lock = NULL;
 
   old_level = intr_disable ();
@@ -667,21 +670,21 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 void
 update_all_donated_priority()
 {
-  int i;
-  struct list_elem *e;
-  struct thread *t;
-  for (i=0; i<8; i++) {
-    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-    {
-      t = list_entry (e, struct thread, allelem);
-      if (t->waiting_lock != NULL)
-      {
-        //printf("%d\n", list_size(&(&(t->waiting_lock)->semaphore)->waiters)); 
-        //ASSERT(t->waiting_lock != NULL);       
-        lock_update_ldp(t->waiting_lock);
-      }
-    }
-  }
+  // int i;
+  // struct list_elem *e;
+  // struct thread *t;
+  // for (i=0; i<8; i++) {
+  //   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+  //   {
+  //     t = list_entry (e, struct thread, allelem);
+  //     if (t->waiting_lock != NULL)
+  //     {
+  //       //printf("%d\n", list_size(&(&(t->waiting_lock)->semaphore)->waiters)); 
+  //       //ASSERT(t->waiting_lock != NULL);       
+  //       lock_update_ldp(t->waiting_lock);
+  //     }
+  //   }
+  // }
 }
 
 /* update all donated priorities and run schedule */
@@ -700,14 +703,12 @@ lock_update_ldp (struct lock *lock)
   struct thread *t;
   if (!list_empty(&(&lock->semaphore)->waiters))
   {
-    //enum intr_level old_level;
-    //old_level = intr_disable ();
+    // error here: waoter list: semaphore is very very large; list->head->prev is not NULL; tail->next is NULL
     for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
     {
-      t = list_entry (e, struct thread, elem);
+      t = list_entry (e, struct thread, sema_elem);
       lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
     }
-    //intr_set_level (old_level);
   }
 }
 

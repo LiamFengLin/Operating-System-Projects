@@ -45,7 +45,7 @@ switch_threads:
 	popl %esi
 	popl %ebp
 	popl %ebx
-        ret
+    ret
 .endfunc
 
 .globl switch_entry
