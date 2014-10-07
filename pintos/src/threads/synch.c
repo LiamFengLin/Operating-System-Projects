@@ -113,9 +113,11 @@ sema_up (struct semaphore *sema)
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
-  if (!list_empty (&sema->waiters)) 
-    thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, sema_elem));
+  if (!list_empty (&sema->waiters)) {
+    struct list_elem* min_t_elem = list_min (&sema->waiters, scheduler_less_sema_elem, NULL);
+    list_remove(min_t_elem);
+    thread_unblock (list_entry (min_t_elem, struct thread, sema_elem));
+  }
   sema->value++;
   intr_set_level (old_level);
   thread_yield();
@@ -285,6 +287,7 @@ lock_release (struct lock *lock)
   old_level = intr_disable ();
   if (!list_empty (&(&lock->semaphore)->waiters)){
     struct list_elem* min_t_elem = list_min (&(&lock->semaphore)->waiters, scheduler_less_sema_elem, NULL);
+    list_remove(min_t_elem);
     thread_unblock (list_entry (min_t_elem, struct thread, sema_elem));
   }
   (&lock->semaphore)->value++;
@@ -393,8 +396,9 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED)
   ASSERT (lock_held_by_current_thread (lock));
 
   if (!list_empty (&cond->waiters)) {
-    list_sort(&cond->waiters, (list_less_func *) &cond_less, NULL);
-    sema_up (&list_entry (list_pop_front (&cond->waiters), struct semaphore_elem, elem)->semaphore);
+    struct list_elem* max_t_elem = list_min (&cond->waiters, cond_less, NULL);
+    list_remove(max_t_elem);
+    sema_up (&list_entry (max_t_elem, struct semaphore_elem, elem)->semaphore);
   }
 }
 
@@ -481,8 +485,8 @@ cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
   struct semaphore *sema_a = &(list_entry(a, struct semaphore_elem, elem)->semaphore);
   struct semaphore *sema_b = &(list_entry(b, struct semaphore_elem, elem)->semaphore);
-  struct thread *thread_a = list_entry(list_begin(&sema_a->waiters), struct thread, elem);
-  struct thread *thread_b = list_entry(list_begin(&sema_b->waiters), struct thread, elem);
+  struct thread *thread_a = list_entry(list_begin(&sema_a->waiters), struct thread, sema_elem);
+  struct thread *thread_b = list_entry(list_begin(&sema_b->waiters), struct thread, sema_elem);
   if (thread_a->priority > thread_b->priority) return true;
   else if (thread_a->priority == thread_b->priority) return true;
   else return false;
