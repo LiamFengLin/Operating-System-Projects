@@ -211,12 +211,8 @@ thread_create (const char *name, int priority,
   sf->ebp = 0;
 
 
-  enum intr_level old_level;
-  old_level = intr_disable ();
   /* Add to run queue. */
   thread_unblock (t);
-  update_all_donated_priority();
-  intr_set_level (old_level);
   thread_yield();
   return tid;
 }
@@ -375,7 +371,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_insert_ordered (&ready_list, &cur->elem, (list_less_func *) &scheduler_less, NULL);
+    list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -536,7 +532,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_init (&t->held_lock);
-  // need fix
+
   t->waiting_lock = NULL;
 
   old_level = intr_disable ();
@@ -565,10 +561,13 @@ alloc_frame (struct thread *t, size_t size)
 static struct thread *
 next_thread_to_run (void) 
 {
-  if (list_empty (&ready_list))
+  if (list_empty (&ready_list)) {
     return idle_thread;
-  else
-    return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  } else {
+    struct list_elem *max_thread = list_min(&ready_list, (list_less_func *) &scheduler_less, NULL);
+    list_remove(max_thread);
+    return list_entry (max_thread, struct thread, elem);
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
@@ -670,21 +669,21 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 void
 update_all_donated_priority()
 {
-  // int i;
-  // struct list_elem *e;
-  // struct thread *t;
-  // for (i=0; i<8; i++) {
-  //   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-  //   {
-  //     t = list_entry (e, struct thread, allelem);
-  //     if (t->waiting_lock != NULL)
-  //     {
-  //       //printf("%d\n", list_size(&(&(t->waiting_lock)->semaphore)->waiters)); 
-  //       //ASSERT(t->waiting_lock != NULL);       
-  //       lock_update_ldp(t->waiting_lock);
-  //     }
-  //   }
-  // }
+  int i;
+  struct list_elem *e;
+  struct thread *t;
+  for (i=0; i<8; i++) {
+    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+    {
+      t = list_entry (e, struct thread, allelem);
+      if (t->waiting_lock != NULL)
+      {
+        //printf("%d\n", list_size(&(&(t->waiting_lock)->semaphore)->waiters)); 
+        //ASSERT(t->waiting_lock != NULL);       
+        lock_update_ldp(t->waiting_lock);
+      }
+    }
+  }
 }
 
 /* update all donated priorities and run schedule */

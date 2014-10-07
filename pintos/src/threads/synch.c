@@ -492,27 +492,26 @@ cond_less (const struct list_elem *a, const struct list_elem *b, void *aux)
 int
 get_donated_priority (struct thread *t)
 {
-  return t->priority;
-  // struct list *held_list = &t->held_lock;
-  // if (list_empty(&held_list)) return t->priority;
-  // else
-  // {
-  //   struct list_elem *e;
-  //   struct lock *s;
-  //   int temp = 0;
+  // return t->priority;
+  struct list *held_list = &t->held_lock;
+  if (list_empty(held_list)) return t->priority;
+  else
+  {
+    struct list_elem *e;
+    struct lock *s;
+    int temp = 0;
 
-  //   // e = list_back(&held_list);
-  //   // s = list_entry (e, struct lock, holder_elem);
-  //   e = list_min (held_list, held_lock_less, NULL);
-  //   s = list_entry(e, struct lock, holder_elem);
-  //   return max(t->priority, s->largest_donated_priority);
-  //   // for (e = list_begin (held_list); e != list_end (held_list); e = list_next (e))
+    // e = list_back(&held_list);
+    // s = list_entry (e, struct lock, holder_elem);
+    e = list_max (held_list, held_lock_less, NULL);
+    s = list_entry(e, struct lock, holder_elem);
+    return max(t->priority, s->largest_donated_priority);
+    // for (e = list_begin (held_list); e != list_end (held_list); e = list_next (e))
     // {
 
     //   s = list_entry(e, struct lock, holder_elem);
     //   temp = max(temp, s->largest_donated_priority);
     // }
     // return max(t->priority, temp);
-    //return 
-  //} 
+  } 
 }
