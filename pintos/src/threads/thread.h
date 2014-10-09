@@ -89,13 +89,12 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-    int64_t wake_up_time;               /* Stores the number of ticks since boot that the thread plans to wake up */
+    int64_t wake_up_time;               /* Stores the number of ticks since boot that the thread plans to wake up. */
     struct list_elem allelem;           /* List element for all threads list. */
-    struct lock *waiting_lock;          /* pointer to the lock that the thread is waiting for */
+    struct lock *waiting_lock;          /* Pointer to the lock that the thread is waiting for. */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    struct list_elem sema_elem;
-    //struct list_elem sleep_sema;
+    struct list_elem sema_elem;          /* List elem used for lock's waiters list. */
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -104,7 +103,7 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
-    struct list held_lock;              /* pointer to a list of locks that the current thread is holding */
+    struct list held_locks;              /* Pointer to a list of locks that the current thread is holding. */
   };
 
 /* If false (default), use round-robin scheduler.
@@ -123,6 +122,8 @@ tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
 void check_should_wake_up (int64_t current_ticks);  
 void thread_sleep (int64_t wake_up_time);
+
+void update_all_donated_priority();
 
 void thread_block (void);
 void thread_unblock (struct thread *);

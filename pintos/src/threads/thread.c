@@ -75,8 +75,6 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 bool less (const struct list_elem *a, const struct list_elem *b, void *aux);
-void update_all_donated_priority();
-void update_all_donated_priority_with_schedule();
 void lock_update_ldp (struct lock *lock);
 
 
@@ -102,7 +100,6 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&blocked_list);
   list_init (&all_list);
-  //sema_init (&sema, 0);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -210,7 +207,6 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
-
   /* Add to run queue. */
   thread_unblock (t);
   thread_yield();
@@ -233,6 +229,8 @@ thread_block (void)
   schedule ();
 }
 
+
+/* Called by timer_interrupt. Wake up any thread that has slept long enough. */
 void
 check_should_wake_up (int64_t current_ticks)  
 {
@@ -240,14 +238,14 @@ check_should_wake_up (int64_t current_ticks)
   struct list_elem *e;
   struct thread *t;
   if (list_empty (&blocked_list)) {
-    return 0;
+    return;
   }
   e = list_back(&blocked_list);
   t = list_entry (e, struct thread, elem);
   ASSERT (is_thread(t));
   while (t->wake_up_time <= current_ticks) {
     list_remove(e);
-    list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_less, NULL);
+    list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_more, NULL);
     if (list_empty(&blocked_list)) {
       break;
     }
@@ -258,6 +256,7 @@ check_should_wake_up (int64_t current_ticks)
   intr_set_level(old_level);
 }
 
+/* Called by timer_sleep in timer.c. Block a thread after putting it onto blocked_list. */
 void
 thread_sleep (int64_t wake_up_time) 
 {
@@ -285,7 +284,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_insert_ordered (&ready_list, &t->elem, (list_less_func *) &scheduler_less, NULL);
+  list_insert_ordered (&ready_list, &t->elem, (list_less_func *) &scheduler_more, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -516,7 +515,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
-  list_init (&t->held_lock);
+  list_init (&t->held_locks);
 
   t->waiting_lock = NULL;
 
@@ -549,7 +548,7 @@ next_thread_to_run (void)
   if (list_empty (&ready_list)) {
     return idle_thread;
   } else {
-    struct list_elem *max_thread = list_min(&ready_list, (list_less_func *) &scheduler_less, NULL);
+    struct list_elem *max_thread = list_min(&ready_list, (list_less_func *) &scheduler_more, NULL);
     list_remove(max_thread);
     return list_entry (max_thread, struct thread, elem);
   }
@@ -642,11 +641,7 @@ less (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
   struct thread *thread_a = list_entry (a, struct thread, elem);
   struct thread *thread_b = list_entry (b, struct thread, elem);
-  if (thread_a->wake_up_time > thread_b->wake_up_time) {
-    return true;
-  } else {
-    return false;
-  }
+  return thread_a->wake_up_time > thread_b->wake_up_time;
 }
 
 
@@ -669,23 +664,16 @@ update_all_donated_priority()
   }
 }
 
-/* update all donated priorities and run schedule */
-void
-update_all_donated_priority_with_schedule()
-{
-  update_all_donated_priority();
-  thread_yield();
-}
-
 /* update lock's largest_donated_priority */
 void
 lock_update_ldp (struct lock *lock)
 {
   struct list_elem *e;
   struct thread *t;
-  if (!list_empty(&(&lock->semaphore)->waiters))
+  struct list *waiters = &(&lock->semaphore)->waiters;
+  if (!list_empty(waiters))
   {
-    for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
+    for (e = list_begin(waiters); e != list_end(waiters); e = list_next(e))
     {
       t = list_entry (e, struct thread, sema_elem);
       lock->largest_donated_priority = max(lock->largest_donated_priority,  get_donated_priority(t));
