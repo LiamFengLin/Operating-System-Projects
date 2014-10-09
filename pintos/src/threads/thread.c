@@ -248,7 +248,6 @@ check_should_wake_up (int64_t current_ticks)
   while (t->wake_up_time <= current_ticks) {
     list_remove(e);
     list_insert_ordered (&ready_list, e, (list_less_func *) &scheduler_less, NULL);
-    //thread_unblock(t);
     if (list_empty(&blocked_list)) {
       break;
     }
@@ -256,20 +255,6 @@ check_should_wake_up (int64_t current_ticks)
     t = list_entry (e, struct thread, elem);
     ASSERT (is_thread(t));
   }
-  // e = list_back(&blocked_list);
-  // ASSERT (is_thread(t));
-  // while (e != list_end(&blocked_list)) {
-  //   t = list_entry (e, struct thread, elem);
-  //   if (t->wake_up_time > current_ticks) {
-  //     break;
-  //   }
-  //   list_remove(e);
-  //   thread_unblock(t);
-  //   if (list_empty(&blocked_list)) {
-  //     break;
-  //   }
-  //   e = list_back(&blocked_list);
-  // }
   intr_set_level(old_level);
 }
 
@@ -677,9 +662,7 @@ update_all_donated_priority()
     {
       t = list_entry (e, struct thread, allelem);
       if (t->waiting_lock != NULL)
-      {
-        //printf("%d\n", list_size(&(&(t->waiting_lock)->semaphore)->waiters)); 
-        //ASSERT(t->waiting_lock != NULL);       
+      {      
         lock_update_ldp(t->waiting_lock);
       }
     }
@@ -702,7 +685,6 @@ lock_update_ldp (struct lock *lock)
   struct thread *t;
   if (!list_empty(&(&lock->semaphore)->waiters))
   {
-    // error here: waoter list: semaphore is very very large; list->head->prev is not NULL; tail->next is NULL
     for (e = list_begin(&(&lock->semaphore)->waiters); e != list_end(&(&lock->semaphore)->waiters); e = list_next(e))
     {
       t = list_entry (e, struct thread, sema_elem);

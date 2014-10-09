@@ -67,7 +67,6 @@ sema_down (struct semaphore *sema)
   old_level = intr_disable ();
   while (sema->value == 0) 
     {
-      //list_insert_ordered (&sema->waiters, &thread_current()->elem, (list_less_func *) &scheduler_less, NULL);
       list_push_back (&sema->waiters, &thread_current()->sema_elem);     
       thread_block ();
     }
@@ -206,7 +205,6 @@ lock_acquire (struct lock *lock)
   old_level = intr_disable ();
   while ((&lock->semaphore)->value == 0) 
     {
-      //list_insert_ordered (&(&lock->semaphore)->waiters, &(thread_current()->elem), (list_less_func *) &scheduler_less, NULL);
       list_push_back (&(&lock->semaphore)->waiters, &(thread_current()->sema_elem));
       thread_current()->waiting_lock = lock;
       update_all_donated_priority();
@@ -216,7 +214,6 @@ lock_acquire (struct lock *lock)
   lock->holder = thread_current();
   
   list_insert_ordered (&(thread_current()->held_lock), &lock->holder_elem, (list_less_func *) &held_lock_less, NULL);
-  
   thread_current()->waiting_lock = NULL;
   update_all_donated_priority();
   intr_set_level (old_level);
@@ -232,16 +229,6 @@ lock_acquire (struct lock *lock)
 bool
 lock_try_acquire (struct lock *lock)
 {
-  // bool success;
-
-  // ASSERT (lock != NULL);
-  // ASSERT (!lock_held_by_current_thread (lock));
-
-  // success = sema_try_down (&lock->semaphore);
-  // if (success)
-  //   lock->holder = thread_current ();
-  // return success;
-
   bool success;
 
   ASSERT (lock != NULL);
@@ -255,10 +242,8 @@ lock_try_acquire (struct lock *lock)
     {
       lock->holder = thread_current();
       (&lock->semaphore)->value--;
-      //lock->held.lock = lock;
       list_push_front(&(thread_current()->held_lock), &lock->holder_elem);
       thread_current()->waiting_lock = NULL;
-      // update_all_donated_priority();
       success = true; 
     }
   else
@@ -305,7 +290,6 @@ lock_release (struct lock *lock)
         break;
       }
     }
-    // ASSERT (found);
   }
   intr_set_level (old_level);
   thread_yield();
@@ -505,17 +489,8 @@ get_donated_priority (struct thread *t)
     struct lock *s;
     int temp = 0;
 
-    // e = list_back(&held_list);
-    // s = list_entry (e, struct lock, holder_elem);
     e = list_max (held_list, held_lock_less, NULL);
     s = list_entry(e, struct lock, holder_elem);
     return max(t->priority, s->largest_donated_priority);
-    // for (e = list_begin (held_list); e != list_end (held_list); e = list_next (e))
-    // {
-
-    //   s = list_entry(e, struct lock, holder_elem);
-    //   temp = max(temp, s->largest_donated_priority);
-    // }
-    // return max(t->priority, temp);
   } 
 }
