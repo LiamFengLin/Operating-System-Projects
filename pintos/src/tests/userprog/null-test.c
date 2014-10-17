@@ -2,6 +2,7 @@
 
 #include "tests/lib.h"
 #include "tests/main.h"
+#include <stdio.h>
 
 void
 test_main (void) 
@@ -14,4 +15,5 @@ test_main (void)
   if (i != 11) {
     fail("Null syscall failed because i was not 11 as expected\n");
   }
+  printf("null");
 }
