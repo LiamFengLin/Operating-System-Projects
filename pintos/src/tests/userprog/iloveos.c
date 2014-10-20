@@ -8,5 +8,5 @@ void
 test_main (void) 
 {
   char *msg = "I love CS162";
-  write(0, msg, strlen(msg));
+  write(1, msg, strlen(msg));
 }
