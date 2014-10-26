@@ -14,6 +14,7 @@ struct wait_status {
   tid_t child_tid;  // used by parent to identify the child
   int ref_count;  // a reference count to identify whether the parent or the child or both are dead
   int exit_status;  // used to store the child’s exit_status, if needed
+  bool wait_called;
 };
 
 struct process_info {
