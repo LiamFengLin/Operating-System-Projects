@@ -10,7 +10,7 @@ void process_activate (void);
 
 struct wait_status {
   struct lock race_lock;
-  struct semaphore dead;
+  struct semaphore sema_dead;
   tid_t child_tid;  // used by parent to identify the child
   int ref_count;  // a reference count to identify whether the parent or the child or both are dead
   int exit_status;  // used to store the child’s exit_status, if needed
@@ -21,7 +21,6 @@ struct process_info {
   struct wait_status child_wait_status;
   bool success;
   struct semaphore sema_load;
-  struct semaphore sema_tell;
   char *fn_copy;
 };
 

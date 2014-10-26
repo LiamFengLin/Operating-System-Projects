@@ -199,7 +199,10 @@ thread_create (const char *name, int priority,
   sf->ebp = 0;
 
   process_info_init(aux, tid);
+  enum intr_level old_level;
+  old_level = intr_disable ();
   list_push_back (&children_wait_status, &aux->elem_in_parent);
+  intr_set_level (old_level);
   t->parent_info = aux;
 
   /* Add to run queue. */
@@ -219,7 +222,7 @@ process_info_init(struct process_info *info, tid_t child_tid) {
 void
 wait_status_init(struct wait_status *status, tid_t child_tid) {
   lock_init(&status->_race_lock);
-  sema_init(&status->dead);
+  sema_init(&status->sema_dead);
   status->child_tid = child_tid;
   status->ref_count = 2;
 }
