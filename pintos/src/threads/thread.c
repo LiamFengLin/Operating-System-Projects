@@ -187,7 +187,7 @@ thread_create (const char *name, int priority,
   kf = alloc_frame (t, sizeof *kf);
   kf->eip = NULL;
   kf->function = function;
-  kf->aux = aux;
+  kf->aux = aux->fn_copy;
 
   /* Stack frame for switch_entry(). */
   ef = alloc_frame (t, sizeof *ef);
@@ -198,10 +198,30 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
+  process_info_init(aux, tid);
+  list_push_back (&children_wait_status, &aux->elem_in_parent);
+  t->parent_info = aux;
+
   /* Add to run queue. */
   thread_unblock (t);
 
   return tid;
+}
+
+void
+process_info_init(struct process_info *info, tid_t child_tid) {
+  wait_status_init(&info->child_wait_status, child_tid);
+  info->success = false;
+  sema_init(&info->sema_load, 0);
+  sema_init(&info->sema_tell, 0);
+}
+
+void
+wait_status_init(struct wait_status *status, tid_t child_tid) {
+  lock_init(&status->_race_lock);
+  sema_init(&status->dead);
+  status->child_tid = child_tid;
+  status->ref_count = 2;
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled
@@ -463,6 +483,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+
+  list_init (&t->children_info);
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);

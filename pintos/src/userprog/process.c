@@ -41,10 +41,19 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  struct process_info *info = malloc(sizeof(struct process_info));
+  info->fn_copy = fn_copy;
+
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
-  if (tid == TID_ERROR)
-    palloc_free_page (fn_copy); 
+  tid = thread_create (file_name, PRI_DEFAULT, start_process, info);
+  if (tid == TID_ERROR) {
+    palloc_free_page (fn_copy);
+    free(info); 
+  }
+  else {
+    list_push_back (&thread_current()->children_info, info->elem_in_parent);
+    sema_down (current_thread()->parent_info->sema_load);
+  }
   return tid;
 }
 
@@ -65,6 +74,8 @@ start_process (void *file_name_)
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
+  current_thread()->parent_info->success = success;
+  sema_up (current_thread()->parent_info->sema_load);
   palloc_free_page (file_name);
   if (!success) 
     thread_exit ();

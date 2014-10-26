@@ -23,5 +23,11 @@ syscall_handler (struct intr_frame *f UNUSED)
   	f->eax = args[1] + 1;
   } else if (args[0] == SYS_WRITE) {
   	printf("%s\n", args[2]);
+  } else if (args[0] == SYS_EXEC) {
+
+  } else if (args[0] == SYS_HALT) {
+
+  } else if (args[0] == SYS_WAIT) {
+    
   }
 }
