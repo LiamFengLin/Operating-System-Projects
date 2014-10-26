@@ -224,6 +224,7 @@ wait_status_init(struct wait_status *status, tid_t child_tid) {
   lock_init(&status->_race_lock);
   sema_init(&status->sema_dead);
   status->child_tid = child_tid;
+  status->wait_called = false;
   status->ref_count = 2;
 }
 
