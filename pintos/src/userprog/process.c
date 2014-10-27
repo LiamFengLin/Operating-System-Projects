@@ -56,13 +56,16 @@ process_execute (const char *file_name)
     list_push_back (&thread_current()->children_info, &info->elem_in_parent);
     intr_set_level (old_level);
     // problem here: parent_info null; pointer not attached via thread_create yet.
-    //sema_down (&thread_current()->parent_info->sema_load);
+    sema_down (&info->sema_load);
   }
   return tid;
 }
 
 void
 process_info_init(struct process_info *info, tid_t child_tid) {
+  
+  ASSERT(info!=NULL);
+
   wait_status_init(&info->child_wait_status, child_tid);
   info->success = false;
   sema_init(&info->sema_load, 0);
@@ -70,6 +73,8 @@ process_info_init(struct process_info *info, tid_t child_tid) {
 
 void
 wait_status_init(struct wait_status *status, tid_t child_tid) {
+  
+  ASSERT(status!=NULL);
   lock_init(&status->race_lock);
   sema_init(&status->sema_dead, 0);
   status->child_tid = child_tid;
@@ -96,7 +101,7 @@ start_process (void *file_name_)
 
   /* If load failed, quit. */
   thread_current()->parent_info->success = success;
-  //sema_up (&thread_current()->parent_info->sema_load);
+  sema_up (&thread_current()->parent_info->sema_load);
   palloc_free_page (file_name);
   if (!success) 
     thread_exit ();
