@@ -204,6 +204,9 @@ thread_create (const char *name, int priority,
   return tid;
 }
 
+// created this to be used exclusively by process_execute because aux in
+// thread_create is used both by thread_start (for creating idle thread) 
+// and process_execute. 
 tid_t
 thread_create_via_process (const char *name, int priority,
                thread_func *function, void *aux_) 
