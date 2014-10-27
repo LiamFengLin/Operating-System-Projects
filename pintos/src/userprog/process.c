@@ -18,7 +18,7 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
-#include "threads/malloc.h"
+//#include "threads/malloc.h"
 
 static struct semaphore temporary;
 static thread_func start_process NO_RETURN;
@@ -45,18 +45,18 @@ process_execute (const char *file_name)
   info->fn_copy = fn_copy;
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, info);
+  tid = thread_create_via_process (file_name, PRI_DEFAULT, start_process, info);
   if (tid == TID_ERROR) {
     palloc_free_page (fn_copy);
     free(info); 
   }
-  else {
-    enum intr_level old_level;
-    old_level = intr_disable ();
-    list_push_back (&thread_current()->children_info, &info->elem_in_parent);
-    intr_set_level (old_level);
-    sema_down (&thread_current()->parent_info->sema_load);
-  }
+  // else {
+  //   enum intr_level old_level;
+  //   old_level = intr_disable ();
+  //   list_push_back (&thread_current()->children_info, &info->elem_in_parent);
+  //   intr_set_level (old_level);
+    //sema_down (&thread_current()->parent_info->sema_load);
+  //}
   return tid;
 }
 
@@ -94,8 +94,8 @@ start_process (void *file_name_)
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
-  thread_current()->parent_info->success = success;
-  sema_up (&thread_current()->parent_info->sema_load);
+  //thread_current()->parent_info->success = success;
+  //sema_up (&thread_current()->parent_info->sema_load);
   palloc_free_page (file_name);
   if (!success) 
     thread_exit ();
