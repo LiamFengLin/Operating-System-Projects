@@ -242,12 +242,12 @@ thread_create_via_process (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
-  //process_info_init(aux, tid);
-  // enum intr_level old_level;
-  // old_level = intr_disable ();
-  // list_push_back (&t->children_info, &aux->elem_in_parent);
-  // intr_set_level (old_level);
-  //t->parent_info = aux;
+  process_info_init(aux, tid);
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  //list_push_back (&t->children_info, &aux->elem_in_parent);
+  intr_set_level (old_level);
+  t->parent_info = aux;
 
   /* Add to run queue. */
   thread_unblock (t);
@@ -516,7 +516,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
 
-  //list_init (&t->children_info);
+  list_init (&t->children_info);
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);

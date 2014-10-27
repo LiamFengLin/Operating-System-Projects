@@ -50,13 +50,14 @@ process_execute (const char *file_name)
     palloc_free_page (fn_copy);
     free(info); 
   }
-  // else {
-  //   enum intr_level old_level;
-  //   old_level = intr_disable ();
-  //   list_push_back (&thread_current()->children_info, &info->elem_in_parent);
-  //   intr_set_level (old_level);
+  else {
+    enum intr_level old_level;
+    old_level = intr_disable ();
+    list_push_back (&thread_current()->children_info, &info->elem_in_parent);
+    intr_set_level (old_level);
+    // problem here: parent_info null; pointer not attached via thread_create yet.
     //sema_down (&thread_current()->parent_info->sema_load);
-  //}
+  }
   return tid;
 }
 
@@ -94,7 +95,7 @@ start_process (void *file_name_)
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
-  //thread_current()->parent_info->success = success;
+  thread_current()->parent_info->success = success;
   //sema_up (&thread_current()->parent_info->sema_load);
   palloc_free_page (file_name);
   if (!success) 

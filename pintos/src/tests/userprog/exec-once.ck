@@ -3,10 +3,10 @@ use strict;
 use warnings;
 use tests::tests;
 check_expected ([<<'EOF']);
-(exec-once) begin
+((null)) begin
 (child-simple) run
 child-simple: exit(81)
-(exec-once) end
+((null)) end
 exec-once: exit(0)
 EOF
 pass;
