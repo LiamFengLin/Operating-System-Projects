@@ -55,7 +55,6 @@ process_execute (const char *file_name)
     old_level = intr_disable ();
     list_push_back (&thread_current()->children_info, &info->elem_in_parent);
     intr_set_level (old_level);
-    // problem here: parent_info null; pointer not attached via thread_create yet.
     sema_down (&info->sema_load);
   }
   return tid;
