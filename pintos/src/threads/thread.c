@@ -164,7 +164,7 @@ thread_print_stats (void)
    Priority scheduling is the goal of Problem 1-3. */
 tid_t
 thread_create (const char *name, int priority,
-               thread_func *function, void *aux) 
+               thread_func *function, void *aux_) 
 {
   struct thread *t;
   struct kernel_thread_frame *kf;
@@ -182,6 +182,8 @@ thread_create (const char *name, int priority,
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
+
+  struct process_info *aux = aux_;
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -201,7 +203,7 @@ thread_create (const char *name, int priority,
   process_info_init(aux, tid);
   enum intr_level old_level;
   old_level = intr_disable ();
-  list_push_back (&children_wait_status, &aux->elem_in_parent);
+  list_push_back (&t->children_info, &aux->elem_in_parent);
   intr_set_level (old_level);
   t->parent_info = aux;
 
@@ -209,23 +211,6 @@ thread_create (const char *name, int priority,
   thread_unblock (t);
 
   return tid;
-}
-
-void
-process_info_init(struct process_info *info, tid_t child_tid) {
-  wait_status_init(&info->child_wait_status, child_tid);
-  info->success = false;
-  sema_init(&info->sema_load, 0);
-  sema_init(&info->sema_tell, 0);
-}
-
-void
-wait_status_init(struct wait_status *status, tid_t child_tid) {
-  lock_init(&status->_race_lock);
-  sema_init(&status->sema_dead);
-  status->child_tid = child_tid;
-  status->wait_called = false;
-  status->ref_count = 2;
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled

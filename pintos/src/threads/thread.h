@@ -118,9 +118,6 @@ void thread_print_stats (void);
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
-void process_info_init(struct process_info *info, tid_t child_tid);
-void wait_status_init(struct wait_status *status, tid_t child_tid);
-
 void thread_block (void);
 void thread_unblock (struct thread *);
 
