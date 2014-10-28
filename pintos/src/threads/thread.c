@@ -248,7 +248,6 @@ thread_create_via_process (const char *name, int priority,
   process_info_init(aux, tid);
   enum intr_level old_level;
   old_level = intr_disable ();
-  list_push_back (&t->children_info, &aux->elem_in_parent);
   intr_set_level (old_level);
   t->parent_info = aux;
 

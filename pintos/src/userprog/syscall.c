@@ -34,12 +34,13 @@ syscall_handler (struct intr_frame *f UNUSED)
       list_remove (&thread_current()->parent_info->elem_in_parent);
       free (thread_current()->parent_info);
     
-      struct list_elem *f;
+      struct list_elem *g;
       struct list_elem *e;
-      for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = f) {
-        struct process_info *c_info = list_entry (e, struct process_info, elem_in_parent);
+      struct process_info *c_info;
+      for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = g) {
+        c_info = list_entry (e, struct process_info, elem_in_parent);
         c_info->child_wait_status.ref_count--;
-        f = list_next(e);
+        g = list_next(e);
         if (c_info->child_wait_status.ref_count == 0) {
           list_remove (e);
           free (c_info);
@@ -47,7 +48,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       }
     } 
     intr_set_level (old_level);
-    printf("exit: exit(%d)\n", f->eax);
+    printf("%s: exit(%d)\n", thread_current()->name, f->eax);
     thread_exit();
   } else if (args[0] == SYS_NULL) {
     f->eax = args[1] + 1;
@@ -57,29 +58,34 @@ syscall_handler (struct intr_frame *f UNUSED)
     if (check_valid_buffer(args[1])) {
       tid_t new_process;
       new_process = process_execute (args[1]);
-      process_execute (args[1]);
       if (new_process == TID_ERROR) {
         f->eax = -1;
+        thread_exit();
       } else {
         struct list_elem *e;
+        struct list_elem *g;
         bool found = false;
+        struct process_info *p_info;
+        // for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = g) {
+        //   p_info = list_entry (e, struct process_info, elem_in_parent);
+        //   g = list_next(e);
+        //   if (p_info->child_wait_status.child_tid == new_process && p_info->child_wait_status.ref_count != 2) {
+        //     list_remove (e);
+        //     free (p_info);
+        //   }
+        // }
+        /*    */
         for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
-          struct process_info *p_info = list_entry (e, struct process_info, elem_in_parent);
-          if (p_info->child_wait_status.child_tid == new_process && p_info->child_wait_status.ref_count != 2) {
-            list_remove (e);
-            free (p_info);
-          }
-        }
-        for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
-          struct process_info *p_info = list_entry (e, struct process_info, elem_in_parent);
+          p_info = list_entry (e, struct process_info, elem_in_parent);
           if (p_info->child_wait_status.child_tid == new_process && p_info->success) {
-            f->eax = new_process;
             found = true;
+            f->eax = new_process;
             break;
           }
         }
         if (!found) {
           f->eax = -1;
+          thread_exit();
         }
       }
     } else {
