@@ -26,28 +26,29 @@ syscall_handler (struct intr_frame *f UNUSED)
   if (args[0] == SYS_EXIT) {
     enum intr_level old_level;
     old_level = intr_disable ();
-    sema_up (&(thread_current()->parent_info->child_wait_status.sema_dead));
-    thread_current()->parent_info->child_wait_status.ref_count--;
-    thread_current()->parent_info->child_wait_status.exit_status = (int) args[1];
-   f->eax = args[1];
-    if (thread_current()->parent_info->child_wait_status.ref_count == 0) {
-      list_remove (&thread_current()->parent_info->elem_in_parent);
-      free (thread_current()->parent_info);
-    
-      struct list_elem *g;
-      struct list_elem *e;
-      struct process_info *c_info;
-      for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = g) {
-        c_info = list_entry (e, struct process_info, elem_in_parent);
-        c_info->child_wait_status.ref_count--;
-        g = list_next(e);
-        if (c_info->child_wait_status.ref_count == 0) {
-          list_remove (e);
-          free (c_info);
-        }
+    if (!(thread_current()->parent_info)) {
+      sema_up (&(thread_current()->parent_info->child_wait_status.sema_dead));
+      thread_current()->parent_info->child_wait_status.ref_count--;
+      thread_current()->parent_info->child_wait_status.exit_status = (int) args[1];
+      if (thread_current()->parent_info->child_wait_status.ref_count == 0) {
+        list_remove (&thread_current()->parent_info->elem_in_parent);
+        free (thread_current()->parent_info);
+      }
+    }
+    struct list_elem *g;
+    struct list_elem *e;
+    struct process_info *c_info;
+    for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = g) {
+      c_info = list_entry (e, struct process_info, elem_in_parent);
+      c_info->child_wait_status.ref_count--;
+      g = list_next(e);
+      if (c_info->child_wait_status.ref_count == 0) {
+        list_remove (e);
+        free (c_info);
       }
     } 
     intr_set_level (old_level);
+    f->eax = args[1];
     printf("%s: exit(%d)\n", thread_current()->name, f->eax);
     thread_exit();
   } else if (args[0] == SYS_NULL) {
@@ -66,6 +67,8 @@ syscall_handler (struct intr_frame *f UNUSED)
         struct list_elem *g;
         bool found = false;
         struct process_info *p_info;
+        enum intr_level old_level;
+        old_level = intr_disable ();
         // for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = g) {
         //   p_info = list_entry (e, struct process_info, elem_in_parent);
         //   g = list_next(e);
@@ -83,6 +86,7 @@ syscall_handler (struct intr_frame *f UNUSED)
             break;
           }
         }
+        intr_set_level (old_level);
         if (!found) {
           f->eax = -1;
           thread_exit();
@@ -104,15 +108,17 @@ syscall_handler (struct intr_frame *f UNUSED)
       p_info = list_entry (e, struct process_info, elem_in_parent);
       if (p_info->child_wait_status.child_tid == new_process) {
         found = true;
-        if (p_info->child_wait_status.ref_count == 2) {
-          sema_down (&(p_info->child_wait_status.sema_dead));
-          f->eax = p_info->child_wait_status.exit_status;
-          break;
-        } else if (p_info->child_wait_status.wait_called) {
+        if (p_info->child_wait_status.wait_called) {
           f->eax = -1;
           thread_exit();
-          break;
-        } 
+        } else if (p_info->child_wait_status.ref_count == 2) {
+          p_info->child_wait_status.wait_called = true;
+          sema_down (&(p_info->child_wait_status.sema_dead));
+          f->eax = p_info->child_wait_status.exit_status;
+        } else if (p_info->child_wait_status.ref_count == 1) {
+          f->eax = p_info->child_wait_status.exit_status;
+        }
+        break;
       } 
     }
     if (!found) {
