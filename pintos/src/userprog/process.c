@@ -99,8 +99,10 @@ start_process (void *file_name_)
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
-  thread_current()->parent_info->success = success;
-  sema_up (&thread_current()->parent_info->sema_load);
+  if (thread_current()->parent_info) {
+    thread_current()->parent_info->success = success;
+    sema_up (&thread_current()->parent_info->sema_load);
+  }
   palloc_free_page (file_name);
   if (!success) 
     thread_exit ();
