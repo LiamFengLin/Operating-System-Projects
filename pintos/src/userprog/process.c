@@ -92,11 +92,7 @@ start_process (void *file_name_)
   struct intr_frame if_;
   bool success;
 
-  char dst[strlen(file_name) + 1];
-  strlcpy (dst, file_name, strlen(file_name));
-
-  char *file_name_split, *save_ptr;
-  file_name_split = strtok_r (dst, " ", &save_ptr);
+  char* file_name_split = get_arg(0, file_name);
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
@@ -110,7 +106,8 @@ start_process (void *file_name_)
     thread_current()->parent_info->success = success;
     sema_up (&thread_current()->parent_info->sema_load);
   }
-  palloc_free_page (file_name_split);
+  palloc_free_page (file_name);
+  free(file_name_split);
   if (!success) 
     thread_exit ();
 
@@ -512,4 +509,45 @@ install_page (void *upage, void *kpage, bool writable)
      address, then map our page there. */
   return (pagedir_get_page (t->pagedir, upage) == NULL
           && pagedir_set_page (t->pagedir, upage, kpage, writable));
+}
+
+int num_of_args(char* args) {
+  if (strlen(args) == 0) {
+    return 0;
+  }
+  int count = 1;
+  while (*args != '\0') {
+    if (*args == ' ') {
+      count++;
+    }
+    args++;
+  }
+  return count;
+}
+
+char* get_arg(int arg_num, char* args) {
+  if(arg_num >= num_of_args(args) || arg_num < 0){
+    return NULL;
+  }
+  char* new_copy;
+  char* start;
+  int count = 0;
+  int length = 0;
+  while(*args != '\0'){
+    if (count == arg_num) {
+      start = args;
+      break;
+    }
+    if (*args == ' ') {
+      count++;
+    }
+    args++;
+  }
+  while(*args != ' ' && *args != '\0'){
+    length++;
+    args++;
+  }
+  new_copy = malloc(sizeof(char) * (length + 1));
+  strlcpy(new_copy, start, length);
+  return new_copy;
 }
