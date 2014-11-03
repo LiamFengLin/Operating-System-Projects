@@ -30,5 +30,6 @@ void process_info_init(struct process_info *info, tid_t child_tid);
 void wait_status_init(struct wait_status *status, tid_t child_tid);
 char* get_arg(int arg_num, char* args);
 int num_of_args(char* args);
+bool check_buffer_overflow(char* args);
 
 #endif /* userprog/process.h */

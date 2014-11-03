@@ -101,6 +101,44 @@ start_process (void *file_name_)
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (file_name_split, &if_.eip, &if_.esp);
 
+  if(check_buffer_overflow(file_name)){
+    int arg_len = strlen(file_name) + 1;
+    int argc = num_of_args(file_name);
+    int i;
+    int length;
+    char* argv_addr[argc];
+    /* Push argument values */
+    for(i = argc - 1; i >= 0; i--){
+      length = strlen(get_arg(i, file_name)) + 1;
+      if_.esp = (void *) if_.esp - length;
+      * (char **) if_.esp = get_arg(i, file_name);
+      argv_addr[i] = if_.esp;
+    }
+    /* Push word_align */
+    int align = (4 - arg_len % 4) % 4;
+    while(align != 0){
+      if_.esp = (uint8_t *) if_.esp - 1;
+      * (uint8_t *) if_.esp = (uint8_t) 0;
+      align --;
+    }
+    /* Push argument pointer */
+    if_.esp = (void *) if_.esp - 4;
+    * (char **) if_.esp = (char *) 0;
+    for(i = argc - 1; i >= 0; i--){
+      if_.esp = (void *) if_.esp - 4;
+      * (char ***) if_.esp = (char **) argv_addr[i];
+    }
+    if_.esp = (void *) if_.esp - 4;
+    * (char ****) if_.esp = (char ***) ((void *) if_.esp + 4);
+    if_.esp = (void *) if_.esp - 4;
+    * (int *) if_.esp = argc;
+    if_.esp = (void *) if_.esp - 4;
+    * (void **) if_.esp = (void *) 0;
+
+
+  }else{
+    success = 0;
+  }
   /* If load failed, quit. */
   if (thread_current()->parent_info) {
     thread_current()->parent_info->success = success;
@@ -550,4 +588,13 @@ char* get_arg(int arg_num, char* args) {
   new_copy = malloc(sizeof(char) * (length + 1));
   strlcpy(new_copy, start, length);
   return new_copy;
+}
+
+bool check_buffer_overflow(char* args){
+  int available_space =  (void *) PHYS_BASE - (void *) &thread_current()->magic- 4;
+  int argc = num_of_args(args);
+  int arg_len = strlen(args) + 1 + (4 - (strlen(args) + 1) % 4) % 4;
+  int total_length = arg_len + argc * 4 + 16;
+  return total_length <= available_space;
+
 }
