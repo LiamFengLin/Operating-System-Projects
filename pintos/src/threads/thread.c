@@ -514,7 +514,14 @@ init_thread (struct thread *t, const char *name, int priority)
   memset (t, 0, sizeof *t);
 
   t->status = THREAD_BLOCKED;
-  strlcpy (t->name, name, sizeof t->name);
+  t->file_name_whole = name;
+  if (num_of_args(name) == 1) {
+    strlcpy (t->name, name, sizeof t->name);
+  } else {
+    char* program_name = get_arg(0, name);
+    strlcpy (t->name, program_name, strlen(program_name) + 1);
+    free(program_name);
+  }
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;

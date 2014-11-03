@@ -88,32 +88,36 @@ wait_status_init(struct wait_status *status, tid_t child_tid) {
 static void
 start_process (void *file_name_)
 {
-  char *file_name = file_name_;
+  char *file_name_split = file_name_;
   struct intr_frame if_;
   bool success;
-
-  char* file_name_split = get_arg(0, file_name);
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name_split, &if_.eip, &if_.esp);
 
+  success = load (file_name_split, &if_.eip, &if_.esp);
+  char* file_name = thread_current()->file_name_whole;
   if(check_buffer_overflow(file_name)){
     int arg_len = strlen(file_name) + 1;
     int argc = num_of_args(file_name);
     int i;
     int length;
     char* argv_addr[argc];
+    char* argument;
     /* Push argument values */
     for(i = argc - 1; i >= 0; i--){
-      length = strlen(get_arg(i, file_name)) + 1;
+      argument = get_arg(i, file_name);
+      length = strlen(argument) + 1;
       if_.esp = (void *) if_.esp - length;
-      * (char **) if_.esp = get_arg(i, file_name);
+      // * (char **) if_.esp = get_arg(i, file_name);
+      memcpy(if_.esp, argument, strlen(argument) + 1);
+      free(argument);
       argv_addr[i] = if_.esp;
     }
+
     /* Push word_align */
     int align = (4 - arg_len % 4) % 4;
     while(align != 0){
@@ -134,8 +138,6 @@ start_process (void *file_name_)
     * (int *) if_.esp = argc;
     if_.esp = (void *) if_.esp - 4;
     * (void **) if_.esp = (void *) 0;
-
-
   }else{
     success = 0;
   }
@@ -144,8 +146,9 @@ start_process (void *file_name_)
     thread_current()->parent_info->success = success;
     sema_up (&thread_current()->parent_info->sema_load);
   }
-  palloc_free_page (file_name);
-  free(file_name_split);
+  palloc_free_page (file_name_split);
+  //free(thread_current()->file_name_whole);
+  thread_current()->file_name_whole = NULL;
   if (!success) 
     thread_exit ();
 
@@ -586,15 +589,15 @@ char* get_arg(int arg_num, char* args) {
     args++;
   }
   new_copy = malloc(sizeof(char) * (length + 1));
-  strlcpy(new_copy, start, length);
+  strlcpy(new_copy, start, length + 1);
   return new_copy;
 }
 
 bool check_buffer_overflow(char* args){
-  int available_space =  (void *) PHYS_BASE - (void *) &thread_current()->magic- 4;
-  int argc = num_of_args(args);
-  int arg_len = strlen(args) + 1 + (4 - (strlen(args) + 1) % 4) % 4;
-  int total_length = arg_len + argc * 4 + 16;
+  size_t available_space =  (void *) PHYS_BASE - (void *) &thread_current()->magic- 4;
+  size_t argc = num_of_args(args);
+  size_t arg_len = strlen(args) + 1 + (4 - (strlen(args) + 1) % 4) % 4;
+  size_t total_length = arg_len + argc * 4 + 16;
   return total_length <= available_space;
 
 }

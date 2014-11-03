@@ -102,6 +102,8 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
     struct file_info thread_files;      /* Thread files info */
+
+    char* file_name_whole;
     
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
