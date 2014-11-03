@@ -514,7 +514,14 @@ init_thread (struct thread *t, const char *name, int priority)
   memset (t, 0, sizeof *t);
 
   t->status = THREAD_BLOCKED;
-  t->file_name_whole = name;
+  if (t->tid != 0) {
+    char* file_name_whole = malloc (strlen(name) + 1);
+    memcpy (file_name_whole, name, strlen(name) + 1);
+    t->file_name_whole = file_name_whole;
+  } else {
+    t->file_name_whole = NULL;
+  }
+  
   if (num_of_args(name) == 1) {
     strlcpy (t->name, name, sizeof t->name);
   } else {

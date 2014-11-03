@@ -100,7 +100,7 @@ start_process (void *file_name_)
 
   success = load (file_name_split, &if_.eip, &if_.esp);
   char* file_name = thread_current()->file_name_whole;
-  if(check_buffer_overflow(file_name)){
+  if(file_name && check_buffer_overflow(file_name)){
     int arg_len = strlen(file_name) + 1;
     int argc = num_of_args(file_name);
     int i;
@@ -138,7 +138,7 @@ start_process (void *file_name_)
     * (int *) if_.esp = argc;
     if_.esp = (void *) if_.esp - 4;
     * (void **) if_.esp = (void *) 0;
-  }else{
+  }else if (file_name){
     success = 0;
   }
   /* If load failed, quit. */
@@ -147,7 +147,9 @@ start_process (void *file_name_)
     sema_up (&thread_current()->parent_info->sema_load);
   }
   palloc_free_page (file_name_split);
-  //free(thread_current()->file_name_whole);
+  if (file_name) {
+    free(thread_current()->file_name_whole);
+  }
   thread_current()->file_name_whole = NULL;
   if (!success) 
     thread_exit ();
