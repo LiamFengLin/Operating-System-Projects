@@ -18,6 +18,7 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+//#include "threads/malloc.h"
 
 static struct semaphore temporary;
 static thread_func start_process NO_RETURN;
@@ -32,7 +33,6 @@ process_execute (const char *file_name)
 {
   char *fn_copy;
   tid_t tid;
-
   sema_init(&temporary, 0);
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
@@ -45,7 +45,7 @@ process_execute (const char *file_name)
   info->fn_copy = fn_copy;
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, info);
+  tid = thread_create_via_process (file_name, PRI_DEFAULT, start_process, info);
   if (tid == TID_ERROR) {
     palloc_free_page (fn_copy);
     free(info); 
@@ -53,12 +53,34 @@ process_execute (const char *file_name)
   else {
     enum intr_level old_level;
     old_level = intr_disable ();
-    list_push_back (&thread_current()->children_info, info->elem_in_parent);
+    list_push_back (&thread_current()->children_info, &info->elem_in_parent);
     intr_set_level (old_level);
-    sema_down (current_thread()->parent_info->sema_load);
+    sema_down (&info->sema_load);
   }
   return tid;
 }
+
+void
+process_info_init(struct process_info *info, tid_t child_tid) {
+  
+  ASSERT(info!=NULL);
+
+  wait_status_init(&info->child_wait_status, child_tid);
+  info->success = false;
+  sema_init(&info->sema_load, 0);
+}
+
+void
+wait_status_init(struct wait_status *status, tid_t child_tid) {
+  
+  ASSERT(status!=NULL);
+  lock_init(&status->race_lock);
+  sema_init(&status->sema_dead, 0);
+  status->child_tid = child_tid;
+  status->wait_called = false;
+  status->ref_count = 2;
+}
+
 
 /* A thread function that loads a user process and starts it
    running. */
@@ -77,8 +99,10 @@ start_process (void *file_name_)
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
-  current_thread()->parent_info->success = success;
-  sema_up (current_thread()->parent_info->sema_load);
+  if (thread_current()->parent_info) {
+    thread_current()->parent_info->success = success;
+    sema_up (&thread_current()->parent_info->sema_load);
+  }
   palloc_free_page (file_name);
   if (!success) 
     thread_exit ();

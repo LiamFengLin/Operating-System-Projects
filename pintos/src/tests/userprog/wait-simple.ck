@@ -3,11 +3,11 @@ use strict;
 use warnings;
 use tests::tests;
 check_expected ([<<'EOF']);
-(wait-simple) begin
+((null)) begin
 (child-simple) run
 child-simple: exit(81)
-(wait-simple) wait(exec()) = 81
-(wait-simple) end
+((null)) wait(exec()) = 81
+((null)) end
 wait-simple: exit(0)
 EOF
 pass;

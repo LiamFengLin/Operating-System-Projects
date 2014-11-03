@@ -2,6 +2,7 @@
 #define USERPROG_PROCESS_H
 
 #include "threads/thread.h"
+#include "threads/synch.h"
 
 tid_t process_execute (const char *file_name);
 int process_wait (tid_t);
@@ -24,5 +25,8 @@ struct process_info {
   struct semaphore sema_load;
   char *fn_copy;
 };
+
+void process_info_init(struct process_info *info, tid_t child_tid);
+void wait_status_init(struct wait_status *status, tid_t child_tid);
 
 #endif /* userprog/process.h */
