@@ -18,6 +18,7 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "lib/string.h"
 //#include "threads/malloc.h"
 
 static struct semaphore temporary;
@@ -91,19 +92,25 @@ start_process (void *file_name_)
   struct intr_frame if_;
   bool success;
 
+  char dst[strlen(file_name) + 1];
+  strlcpy (dst, file_name, strlen(file_name));
+
+  char *file_name_split, *save_ptr;
+  file_name_split = strtok_r (dst, " ", &save_ptr);
+
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name, &if_.eip, &if_.esp);
+  success = load (file_name_split, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
   if (thread_current()->parent_info) {
     thread_current()->parent_info->success = success;
     sema_up (&thread_current()->parent_info->sema_load);
   }
-  palloc_free_page (file_name);
+  palloc_free_page (file_name_split);
   if (!success) 
     thread_exit ();
 
@@ -480,7 +487,7 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
-        *esp = PHYS_BASE - 12;
+        *esp = PHYS_BASE;
       else
         palloc_free_page (kpage);
     }

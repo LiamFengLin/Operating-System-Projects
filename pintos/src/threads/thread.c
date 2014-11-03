@@ -512,6 +512,7 @@ init_thread (struct thread *t, const char *name, int priority)
   ASSERT (name != NULL);
 
   memset (t, 0, sizeof *t);
+
   t->status = THREAD_BLOCKED;
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
@@ -521,10 +522,23 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init (&t->children_info);
   t->parent_info = NULL;
 
+  init_file_info(&t->thread_files);
+
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
 }
+
+/* Does basic initialization of file_info struct */
+void
+init_file_info(struct file_info* thread_files){
+  int i;
+  for(i = 0; i < 128; i ++){
+    thread_files->open_files[i] = NULL;
+    thread_files->file_valid[i] = 0;
+  }
+}
+
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
    returns a pointer to the frame's base. */

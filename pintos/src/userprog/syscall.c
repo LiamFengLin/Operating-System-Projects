@@ -8,6 +8,8 @@
 #include "userprog/pagedir.h"
 #include "userprog/process.h"
 #include "devices/shutdown.h"
+#include "filesys/filesys.h"
+#include "filesys/file.h"
 
 static void syscall_handler (struct intr_frame *);
 bool check_valid_ptr (void* vaddr);
@@ -37,10 +39,10 @@ syscall_handler (struct intr_frame *f UNUSED)
     exit_process(f, (int) args[1]);
   } else if (args[0] == SYS_NULL) {
     f->eax = args[1] + 1;
-  } else if (args[0] == SYS_WRITE) {
-    printf("%s", args[2]);
   } else if (args[0] == SYS_EXEC) {
     if (check_valid_buffer(args[1])) {
+
+      // args_split(args[1]);
       tid_t new_process;
       new_process = process_execute (args[1]);
       if (new_process == TID_ERROR) {
@@ -93,6 +95,47 @@ syscall_handler (struct intr_frame *f UNUSED)
       f->eax = -1;
     }
   }
+  //  else if (args[0] == SYS_CREATE){
+  //   if(!check_valid_buffer(args[1])){
+  //     f->eax = -1;
+  //   }else{
+  //     f->eax = filesys_create (args[1], args[2]);
+  //   }
+  // } else if (args[0] == SYS_REMOVE){
+  //   if(!check_valid_buffer(args[1])){
+  //     f->eax = -1;
+  //   }else{
+  //     f->eax = filesys_remove (args[1]);
+  //   }
+  // } else if (args[0] == SYS_OPEN){
+  //   if(!check_valid_buffer(args[1])){
+  //     f->eax = -1;
+  //   }else{
+  //     int assign_handle = next_valid_handle();
+  //     struct file * opened = filesys_open (args[1]);
+  //     thread_current()->thread_files.open_files[assign_handle] = opened;
+  //     thread_current()->thread_files.file_valid[assign_handle] = 1;
+  //     f->eax = assign_handle;
+  //   }
+  // } else if (args[0] == SYS_FILESIZE){
+  //   int fd = args[1];
+  //   if(fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
+  //     struct file* opened = thread_current()->thread_files.open_files[fd];
+  //     f->eax = file_length(opened);
+  //   }else{
+  //     f->eax = -1;
+  //   }
+  // } else if (args[0] == SYS_READ){
+
+  // } else if (args[0] == SYS_WRITE) {
+  //   printf("%s", args[2]);
+  // } else if (args[0] == SYS_SEEK){
+
+  // } else if (args[0] == SYS_TELL){
+
+  // } else if (args[0] == SYS_CLOSE){
+
+  // }
 }
 
 void exit_process(struct intr_frame *f UNUSED, int error_code){
@@ -116,7 +159,7 @@ void exit_process(struct intr_frame *f UNUSED, int error_code){
       list_remove (e);
       free (c_info);
     }
-  } 
+  }
   f->eax = error_code;
   printf("%s: exit(%d)\n", thread_current()->name, f->eax);
   thread_exit();
@@ -147,4 +190,15 @@ bool
 check_valid_ptr (void* vaddr)
 {
   return vaddr && is_user_vaddr (vaddr);
+}
+
+int next_valid_handle(){
+  int* valid_bits =  thread_current()->thread_files.file_valid;
+  int i;
+  for(i = 2; i < 128; i ++){
+    if(!valid_bits[i]){
+      return i;
+    }
+  }
+  return -1;
 }

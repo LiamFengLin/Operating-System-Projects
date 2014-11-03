@@ -14,6 +14,13 @@ enum thread_status
     THREAD_DYING        /* About to be destroyed. */
   };
 
+struct file_info
+  {
+    struct file* open_files[128];      /* An array of open files */
+    int file_valid[128];                /* An array indicating validity of files */
+
+  };
+
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
 typedef int tid_t;
@@ -94,7 +101,8 @@ struct thread
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-
+    struct file_info thread_files;      /* Thread files info */
+    
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -141,5 +149,7 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+/* Initialize file_info */
+void init_file_info(struct file_info *thread_files);
 
 #endif /* threads/thread.h */
