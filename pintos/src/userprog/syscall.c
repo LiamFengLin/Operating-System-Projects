@@ -94,48 +94,61 @@ syscall_handler (struct intr_frame *f UNUSED)
     if (!found) {
       f->eax = -1;
     }
+  } else if (args[0] == SYS_CREATE){
+    if(args[1] || args[1] == "" || !check_valid_buffer(args[1])){
+      f->eax = -1;
+    }else{
+      f->eax = filesys_create (args[1], args[2]);
+    }
+  } else if (args[0] == SYS_REMOVE){
+    if(args[1] || args[1] == "" || !check_valid_buffer(args[1])){
+      f->eax = -1;
+    }else{
+      f->eax = filesys_remove (args[1]);
+    }
+  } else if (args[0] == SYS_OPEN){
+    if(args[1] || args[1] == "" || !check_valid_buffer(args[1])){
+      f->eax = -1;
+    }else{
+      int assign_handle = next_valid_handle();
+      struct file * opened = filesys_open (args[1]);
+      if(opened == NULL){
+        f->eax = -1;
+      }else{
+        thread_current()->thread_files.open_files[assign_handle] = opened;
+        thread_current()->thread_files.file_valid[assign_handle] = 1;
+        f->eax = assign_handle;
+      }
+    }
+  } else if (args[0] == SYS_FILESIZE){
+    int fd = args[1];
+    if(args[1] && fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
+      struct file* opened = thread_current()->thread_files.open_files[fd];
+      f->eax = file_length(opened);
+    }else{
+      f->eax = -1;
+    }
+  } else if (args[0] == SYS_READ){
+    int fd = args[1];
+    if(args[1] && fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
+      struct file* opened = thread_current()->thread_files.open_files[fd];
+      if(opened || check_valid_buffer(args[2])){
+        f->eax = file_read(opened, args[1], args[2]);
+      }else{
+        f->eax = -1;
+      }
+    }else{
+      f->eax = -1;
+    }
+  } else if (args[0] == SYS_WRITE) {
+    printf("%s", args[2]);
+  } else if (args[0] == SYS_SEEK){
+
+  } else if (args[0] == SYS_TELL){
+
+  } else if (args[0] == SYS_CLOSE){
+
   }
-  //  else if (args[0] == SYS_CREATE){
-  //   if(!check_valid_buffer(args[1])){
-  //     f->eax = -1;
-  //   }else{
-  //     f->eax = filesys_create (args[1], args[2]);
-  //   }
-  // } else if (args[0] == SYS_REMOVE){
-  //   if(!check_valid_buffer(args[1])){
-  //     f->eax = -1;
-  //   }else{
-  //     f->eax = filesys_remove (args[1]);
-  //   }
-  // } else if (args[0] == SYS_OPEN){
-  //   if(!check_valid_buffer(args[1])){
-  //     f->eax = -1;
-  //   }else{
-  //     int assign_handle = next_valid_handle();
-  //     struct file * opened = filesys_open (args[1]);
-  //     thread_current()->thread_files.open_files[assign_handle] = opened;
-  //     thread_current()->thread_files.file_valid[assign_handle] = 1;
-  //     f->eax = assign_handle;
-  //   }
-  // } else if (args[0] == SYS_FILESIZE){
-  //   int fd = args[1];
-  //   if(fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
-  //     struct file* opened = thread_current()->thread_files.open_files[fd];
-  //     f->eax = file_length(opened);
-  //   }else{
-  //     f->eax = -1;
-  //   }
-  // } else if (args[0] == SYS_READ){
-
-  // } else if (args[0] == SYS_WRITE) {
-  //   printf("%s", args[2]);
-  // } else if (args[0] == SYS_SEEK){
-
-  // } else if (args[0] == SYS_TELL){
-
-  // } else if (args[0] == SYS_CLOSE){
-
-  // }
 }
 
 void exit_process(struct intr_frame *f UNUSED, int error_code){

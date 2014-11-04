@@ -228,6 +228,8 @@ thread_create_via_process (const char *name, int priority,
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
 
+  free(name);
+
   struct process_info *aux = aux_;
 
   /* Stack frame for kernel_thread(). */
@@ -514,21 +516,9 @@ init_thread (struct thread *t, const char *name, int priority)
   memset (t, 0, sizeof *t);
 
   t->status = THREAD_BLOCKED;
-  if (t->tid != 0) {
-    char* file_name_whole = malloc (strlen(name) + 1);
-    memcpy (file_name_whole, name, strlen(name) + 1);
-    t->file_name_whole = file_name_whole;
-  } else {
-    t->file_name_whole = NULL;
-  }
   
-  if (num_of_args(name) == 1) {
-    strlcpy (t->name, name, sizeof t->name);
-  } else {
-    char* program_name = get_arg(0, name);
-    strlcpy (t->name, program_name, strlen(program_name) + 1);
-    free(program_name);
-  }
+  strlcpy (t->name, name, sizeof t->name);
+  
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;

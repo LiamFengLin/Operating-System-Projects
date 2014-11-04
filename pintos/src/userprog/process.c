@@ -45,8 +45,10 @@ process_execute (const char *file_name)
   struct process_info *info = malloc(sizeof(struct process_info));
   info->fn_copy = fn_copy;
 
+  char* program_name = get_arg(0, file_name);
+
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create_via_process (file_name, PRI_DEFAULT, start_process, info);
+  tid = thread_create_via_process (program_name, PRI_DEFAULT, start_process, info);
   if (tid == TID_ERROR) {
     palloc_free_page (fn_copy);
     free(info); 
@@ -88,7 +90,7 @@ wait_status_init(struct wait_status *status, tid_t child_tid) {
 static void
 start_process (void *file_name_)
 {
-  char *file_name_split = file_name_;
+  char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
 
@@ -98,9 +100,8 @@ start_process (void *file_name_)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
 
-  success = load (file_name_split, &if_.eip, &if_.esp);
-  char* file_name = thread_current()->file_name_whole;
-  if(file_name && check_buffer_overflow(file_name)){
+  success = load (thread_current()->name, &if_.eip, &if_.esp);
+  if(success && check_buffer_overflow(file_name)){
     int arg_len = strlen(file_name) + 1;
     int argc = num_of_args(file_name);
     int i;
@@ -138,7 +139,7 @@ start_process (void *file_name_)
     * (int *) if_.esp = argc;
     if_.esp = (void *) if_.esp - 4;
     * (void **) if_.esp = (void *) 0;
-  }else if (file_name){
+  }else{
     success = 0;
   }
   /* If load failed, quit. */
@@ -146,11 +147,8 @@ start_process (void *file_name_)
     thread_current()->parent_info->success = success;
     sema_up (&thread_current()->parent_info->sema_load);
   }
-  palloc_free_page (file_name_split);
-  if (file_name) {
-    free(thread_current()->file_name_whole);
-  }
-  thread_current()->file_name_whole = NULL;
+  palloc_free_page (file_name);
+  
   if (!success) 
     thread_exit ();
 
@@ -555,20 +553,23 @@ install_page (void *upage, void *kpage, bool writable)
 }
 
 int num_of_args(char* args) {
+  char* last_char = args;
   if (strlen(args) == 0) {
     return 0;
   }
   int count = 1;
   while (*args != '\0') {
-    if (*args == ' ') {
+    if (*args == ' ' && *last_char != ' ') {
       count++;
     }
+    last_char = args;
     args++;
   }
   return count;
 }
 
 char* get_arg(int arg_num, char* args) {
+  char* last_char = args;
   if(arg_num >= num_of_args(args) || arg_num < 0){
     return NULL;
   }
@@ -579,13 +580,18 @@ char* get_arg(int arg_num, char* args) {
   while(*args != '\0'){
     if (count == arg_num) {
       start = args;
+      while(*start == ' '){
+        start ++;
+      }
       break;
     }
     if (*args == ' ') {
       count++;
     }
+    last_char = args;
     args++;
   }
+  args = start;
   while(*args != ' ' && *args != '\0'){
     length++;
     args++;
