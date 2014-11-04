@@ -184,6 +184,39 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+  int error_code = cur->exit_code;
+  if (thread_current()->parent_info) {
+    sema_up (&(thread_current()->parent_info->child_wait_status.sema_dead));
+    thread_current()->parent_info->child_wait_status.ref_count--;
+    thread_current()->parent_info->child_wait_status.exit_status = error_code;
+    if (thread_current()->parent_info->child_wait_status.ref_count == 0) {
+      list_remove (&thread_current()->parent_info->elem_in_parent);
+      free (thread_current()->parent_info);
+    }
+  }
+  struct list_elem *g;
+  struct list_elem *e;
+  struct process_info *c_info;
+  for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = g) {
+    c_info = list_entry (e, struct process_info, elem_in_parent);
+    c_info->child_wait_status.ref_count--;
+    g = list_next(e);
+    if (c_info->child_wait_status.ref_count == 0) {
+      list_remove (e);
+      free (c_info);
+    }
+  }
+  if (thread_current()->current_file != NULL) {
+    file_close(thread_current()->current_file);
+  }
+  int i;
+  for (i = 0; i < 128; i++) {
+    if (thread_current()->thread_files.file_valid[i] && thread_current()->thread_files.open_files[i]) {
+      file_close(thread_current()->thread_files.open_files[i]);
+    }
+  }
+  
+  printf("%s: exit(%d)\n", thread_current()->name, error_code);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */

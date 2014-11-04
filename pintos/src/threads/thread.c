@@ -523,6 +523,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   t->current_file = NULL;
+  t->exit_code = -1;
 
   list_init (&t->children_info);
   t->parent_info = NULL;

@@ -103,7 +103,7 @@ struct thread
     struct list_elem elem;              /* List element. */
     struct file_info thread_files;      /* Thread files info */
     struct file *current_file;     /* The file for the executable itself */
-
+    int exit_code;                   /* exit code */
     //char* file_name_whole;
     
 #ifdef USERPROG
