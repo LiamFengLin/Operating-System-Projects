@@ -102,6 +102,7 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
     struct file_info thread_files;      /* Thread files info */
+    struct file *current_file;     /* The file for the executable itself */
 
     //char* file_name_whole;
     
