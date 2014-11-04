@@ -204,7 +204,7 @@ process_wait (tid_t child_tid UNUSED)
 
   intr_set_level (old_level);
 
-  sema_down(&temporary);
+  // sema_down(&temporary);
   return wait_status;
 }
 
