@@ -56,7 +56,7 @@ process_execute (const char *file_name)
   else {
     enum intr_level old_level;
     old_level = intr_disable ();
-    list_push_back (&thread_current()->children_info, &info->elem_in_parent);
+    list_push_front (&thread_current()->children_info, &info->elem_in_parent);
     intr_set_level (old_level);
     sema_down (&info->sema_load);
   }

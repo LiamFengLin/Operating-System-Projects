@@ -35,14 +35,19 @@ syscall_handler (struct intr_frame *f UNUSED)
     }
   } 
   uint32_t* args = ((uint32_t*) f->esp);
+  if(!check_valid_ptr((void *) &args[1])){
+      exit_process(f, -1);
+  }
   if (args[0] == SYS_EXIT) {
-    exit_process(f, (int) args[1]);
+    exit_process(f, (int) args[1]);  
   } else if (args[0] == SYS_NULL) {
     f->eax = args[1] + 1;
   } else if (args[0] == SYS_EXEC) {
     if (check_valid_buffer(args[1])) {
 
-      // args_split(args[1]);
+      enum intr_level old_level;
+      old_level = intr_disable ();
+
       tid_t new_process;
       new_process = process_execute (args[1]);
       if (new_process == TID_ERROR) {
@@ -64,6 +69,7 @@ syscall_handler (struct intr_frame *f UNUSED)
           f->eax = -1;
         }
       }
+      intr_set_level (old_level);
     } else {
       f->eax = -1;
     }
@@ -72,16 +78,20 @@ syscall_handler (struct intr_frame *f UNUSED)
   } else if (args[0] == SYS_WAIT) {
     struct list_elem *e;
     struct process_info *p_info;
+
+    enum intr_level old_level;
+    old_level = intr_disable ();
+
     bool found = false;
     for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
       p_info = list_entry (e, struct process_info, elem_in_parent);
       if (p_info->child_wait_status.child_tid == args[1]) {
         found = true;
         if (p_info->child_wait_status.wait_called) {
-          // exit_process(f, -1);
           f->eax = -1;
         } else if (p_info->child_wait_status.ref_count == 2) {
           p_info->child_wait_status.wait_called = true;
+          intr_set_level (old_level);
           sema_down (&(p_info->child_wait_status.sema_dead));
           f->eax = p_info->child_wait_status.exit_status;
         } else if (p_info->child_wait_status.ref_count == 1) {
@@ -91,24 +101,30 @@ syscall_handler (struct intr_frame *f UNUSED)
         break;
       } 
     }
+
+    intr_set_level (old_level);
+    
     if (!found) {
       f->eax = -1;
     }
   } else if (args[0] == SYS_CREATE){
-    if(args[1] || args[1] == "" || !check_valid_buffer(args[1])){
-      f->eax = -1;
+    if(!args[1] || args[1] == "" || !check_valid_buffer(args[1])){
+      exit_process(f, -1);
     }else{
       f->eax = filesys_create (args[1], args[2]);
     }
   } else if (args[0] == SYS_REMOVE){
-    if(args[1] || args[1] == "" || !check_valid_buffer(args[1])){
-      f->eax = -1;
+    if(!args[1] || args[1] == "" || !check_valid_buffer(args[1])){
+      exit_process(f, -1);
+
     }else{
       f->eax = filesys_remove (args[1]);
     }
   } else if (args[0] == SYS_OPEN){
-    if(args[1] || args[1] == "" || !check_valid_buffer(args[1])){
+    if(args[1] == ""){
       f->eax = -1;
+    }else if(!args[1] || !check_valid_buffer(args[1])){
+      exit_process(f, -1);
     }else{
       int assign_handle = next_valid_handle();
       struct file * opened = filesys_open (args[1]);
@@ -129,19 +145,36 @@ syscall_handler (struct intr_frame *f UNUSED)
       f->eax = -1;
     }
   } else if (args[0] == SYS_READ){
-    int fd = args[1];
-    if(args[1] && fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
-      struct file* opened = thread_current()->thread_files.open_files[fd];
-      if(opened || check_valid_buffer(args[2])){
-        f->eax = file_read(opened, args[1], args[2]);
+    if(!check_valid_buffer(args[2]) && check_valid_ptr(&args[1])){
+      exit_process(f, -1);
+    }else{
+      int fd = args[1];
+      if(fd && fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
+        struct file* opened = thread_current()->thread_files.open_files[fd];
+        if(opened){
+          f->eax = file_read(opened, args[2], args[3]);
+        }else{
+          f->eax = -1;
+        }
       }else{
         f->eax = -1;
       }
+    }
+  } else if (args[0] == SYS_WRITE) {
+    int fd = args[1];
+    if(fd && fd >= 2 && fd < 128 && thread_current()->thread_files.file_valid[fd]){
+      struct file* opened = thread_current()->thread_files.open_files[fd];
+      if(opened && check_valid_ptr(&args[1]) && check_valid_buffer(args[2])){
+        f->eax = file_write(opened, args[2], args[3]);
+      }else{
+        f->eax = -1;
+      }
+    }else if(fd == 1){
+      printf("%s", args[2]);
     }else{
       f->eax = -1;
     }
-  } else if (args[0] == SYS_WRITE) {
-    printf("%s", args[2]);
+    
   } else if (args[0] == SYS_SEEK){
 
   } else if (args[0] == SYS_TELL){
