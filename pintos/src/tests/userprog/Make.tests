@@ -16,8 +16,7 @@ read-zero read-stdout read-bad-fd write-normal write-bad-ptr		\
 write-boundary write-zero write-stdin write-bad-fd exec-arg	\
 multi-recurse multi-child-fd rox-simple	\
 rox-child rox-multichild bad-read bad-write bad-read2 bad-write2        \
-bad-jump bad-jump2) multi-recurse multi-child-fd\
-rox-multichild )
+bad-jump bad-jump2)
 
 tests/userprog_PROGS = $(tests/userprog_TESTS) $(addprefix \
 tests/userprog/,child-simple child-args child-bad child-close child-rox)
