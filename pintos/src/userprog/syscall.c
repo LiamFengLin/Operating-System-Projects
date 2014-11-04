@@ -76,37 +76,7 @@ syscall_handler (struct intr_frame *f UNUSED)
   } else if (args[0] == SYS_HALT) {
     shutdown_power_off();
   } else if (args[0] == SYS_WAIT) {
-    struct list_elem *e;
-    struct process_info *p_info;
-
-    enum intr_level old_level;
-    old_level = intr_disable ();
-
-    bool found = false;
-    for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
-      p_info = list_entry (e, struct process_info, elem_in_parent);
-      if (p_info->child_wait_status.child_tid == args[1]) {
-        found = true;
-        if (p_info->child_wait_status.wait_called) {
-          f->eax = -1;
-        } else if (p_info->child_wait_status.ref_count == 2) {
-          p_info->child_wait_status.wait_called = true;
-          intr_set_level (old_level);
-          sema_down (&(p_info->child_wait_status.sema_dead));
-          f->eax = p_info->child_wait_status.exit_status;
-        } else if (p_info->child_wait_status.ref_count == 1) {
-          p_info->child_wait_status.wait_called = true;
-          f->eax = p_info->child_wait_status.exit_status;
-        }
-        break;
-      } 
-    }
-
-    intr_set_level (old_level);
-    
-    if (!found) {
-      f->eax = -1;
-    }
+    f->eax = process_wait(args[1]);
   } else if (args[0] == SYS_CREATE){
     if(!args[1] || args[1] == "" || !check_valid_buffer(args[1])){
       exit_process(f, -1);

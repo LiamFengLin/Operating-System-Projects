@@ -174,8 +174,38 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
+
+  struct list_elem *e;
+  struct process_info *p_info;
+
+  enum intr_level old_level;
+  old_level = intr_disable ();
+
+  int wait_status = -1;
+
+  for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
+    p_info = list_entry (e, struct process_info, elem_in_parent);
+    if (p_info->child_wait_status.child_tid == child_tid) {
+      if (p_info->child_wait_status.wait_called) {
+        wait_status = -1;
+      } else if (p_info->child_wait_status.ref_count == 2) {
+        p_info->child_wait_status.wait_called = true;
+        intr_set_level (old_level);
+        sema_down (&(p_info->child_wait_status.sema_dead));
+        old_level = intr_disable ();
+        wait_status = p_info->child_wait_status.exit_status;
+      } else if (p_info->child_wait_status.ref_count == 1) {
+        p_info->child_wait_status.wait_called = true;
+        wait_status = p_info->child_wait_status.exit_status;
+      }
+      break;
+    } 
+  }
+
+  intr_set_level (old_level);
+
   sema_down(&temporary);
-  return 0;
+  return wait_status;
 }
 
 /* Free the current process's resources. */
