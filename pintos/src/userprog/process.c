@@ -629,6 +629,9 @@ int num_of_args(char* args) {
     last_char = args;
     args++;
   }
+  if (args[strlen(args) - 1] == ' ') {
+    count--;
+  }
   return count;
 }
 
