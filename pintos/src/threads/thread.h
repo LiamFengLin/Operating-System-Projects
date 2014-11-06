@@ -18,7 +18,6 @@ struct file_info
   {
     struct file* open_files[128];      /* An array of open files */
     int file_valid[128];                /* An array indicating validity of files */
-
   };
 
 /* Thread identifier type.
@@ -102,9 +101,8 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
     struct file_info thread_files;      /* Thread files info */
-    struct file *current_file;     /* The file for the executable itself */
-    int exit_code;                   /* exit code */
-    //char* file_name_whole;
+    struct file *current_file;          /* The file for the executable itself */
+    int exit_code;                      /* exit code */
     
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
