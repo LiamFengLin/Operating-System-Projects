@@ -45,7 +45,6 @@ public final class AGCategories {
 
     @RunWith(Categories.class)
     @Suite.SuiteClasses({
-        
     })
     @FixMethodOrder(MethodSorters.NAME_ASCENDING)
     @IncludeCategory(AG_PROJ4_CODE.class)

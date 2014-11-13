@@ -1,15 +1,24 @@
 package kvstore;
 
 import static org.junit.Assert.*;
+import static kvstore.KVConstants.*;
+
+
+import static autograder.TestUtils.kTimeoutQuick;
+import autograder.AGCategories.AGTestDetails;
+import autograder.AGCategories.AG_PROJ3_CODE;
 
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 
 public class KVCacheTest {
 
     /**
      * Verify the cache can put and get a KV pair successfully.
      */
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void singlePutAndGet() {
         KVCache cache = new KVCache(1, 4);
         cache.put("hello", "world");
@@ -18,7 +27,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(0), 1);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void fourPutsandGets() {
         KVCache cache = new KVCache(1, 4);
         cache.put("1", "hello");
@@ -33,7 +44,9 @@ public class KVCacheTest {
         //System.out.println(cache.toXML());
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void repeatedPuts() {
         KVCache cache = new KVCache(1, 4);
         cache.put("1", "hello");
@@ -45,7 +58,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(0), 1);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void singlePutAndDel() {
         KVCache cache = new KVCache(1, 4);
         cache.put("hello", "world");
@@ -55,7 +70,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(0), 0);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void twoPutsAndDels() {
         KVCache cache = new KVCache(1, 4);
         cache.put("1", "hello");
@@ -86,7 +103,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(0), 0);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void tooManyPuts() {
         KVCache cache = new KVCache(1, 1);
         cache.put("hello", "world");
@@ -99,7 +118,9 @@ public class KVCacheTest {
         //System.out.println(cache.toXML());
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void tooManyPutsWithGets() {
         KVCache cache = new KVCache(1, 4);
         cache.put("one", "hello");
@@ -122,7 +143,9 @@ public class KVCacheTest {
         //System.out.println(cache.toXML());
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void multipleSetPuts() {
         KVCache cache = new KVCache(2, 4);
         cache.put("1", "hi");
@@ -133,7 +156,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(1), 1);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void multipleSetPutsDels() {
         KVCache cache = new KVCache(2, 4);
         cache.put("1", "hi");
@@ -153,7 +178,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(1), 0);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void multipleSetsSamePuts() {
         KVCache cache = new KVCache(3, 15);
         cache.put("1", "hi");
@@ -170,7 +197,9 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(2), 0);
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void multipleSetsTooManyPuts() {
         KVCache cache = new KVCache(2, 3);
         cache.put("2", "hi");
@@ -200,7 +229,9 @@ public class KVCacheTest {
         //System.out.println(cache.toXML());
     }
 
-    @Test
+    @Test(timeout = kTimeoutQuick)
+    @Category(AG_PROJ3_CODE.class)
+    @AGTestDetails(points = 1, desc = "")
     public void multipleSetsTooManyPutsWithGets() {
         KVCache cache = new KVCache(2, 3);
         cache.put("2", "hi");
