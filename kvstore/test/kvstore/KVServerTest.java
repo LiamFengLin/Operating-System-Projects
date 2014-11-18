@@ -289,11 +289,11 @@ public class KVServerTest {
         when(mockCache.getLock("cal")).thenReturn(l1);
         when(mockCache.getLock("stan")).thenReturn(l2);
         doAnswer(checkParallelSerial1).when(mockCache).put("cal", "gobears");
-        try {
-            doAnswer(checkParallelSerial2).when(mockStore).put("cal");
-        } catch (KVException e) {
-            fail("Unexpected exception on put");
-        }
+        //try {
+        doAnswer(checkParallelSerial2).when(mockStore).put("cal", "gobears");
+        //} catch (KVException e) {
+        //    fail("Unexpected exception on put");
+        //}
 
         when(mockCache.get("stan")).thenReturn("furd");
         try {
