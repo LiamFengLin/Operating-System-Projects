@@ -41,7 +41,12 @@ public class KVClient implements KeyValueInterface {
      */
     public Socket connectHost() throws KVException {
         // implement me
-        return null;
+        try {
+        	Socket socket = new Socket(server, port);
+        	return socket;
+        } catch (Exception e) {
+        	throw new KVException("Unable to create or connect socket");
+        }
     }
 
     /**
@@ -51,7 +56,10 @@ public class KVClient implements KeyValueInterface {
      * @param  sock Socket to be closed
      */
     public void closeHost(Socket sock) {
-        // implement me
+        try {
+			sock.close();
+		} catch (IOException e) {
+		}
     }
 
     /**
@@ -63,6 +71,7 @@ public class KVClient implements KeyValueInterface {
     @Override
     public void put(String key, String value) throws KVException {
         // implement me
+    	// kv message
     }
 
     /**
@@ -75,6 +84,7 @@ public class KVClient implements KeyValueInterface {
     @Override
     public String get(String key) throws KVException {
         // implement me
+    	// kv message
         return null;
     }
 
@@ -87,6 +97,7 @@ public class KVClient implements KeyValueInterface {
     @Override
     public void del(String key) throws KVException {
         // implement me
+    	// kv message
     }
 
 

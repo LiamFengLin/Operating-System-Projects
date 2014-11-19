@@ -32,6 +32,44 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name) 
 {
+
+  tid_t new_process;
+  tid_t new_process_tid;
+
+  enum intr_level old_level;
+  old_level = intr_disable ();
+
+  new_process = process_execute_helper (file_name);
+  if (new_process == TID_ERROR) {
+    new_process_tid = -1;
+  } else {
+    struct list_elem *e;
+    struct list_elem *g;
+    bool found = false;
+    struct process_info *p_info;
+    for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
+      p_info = list_entry (e, struct process_info, elem_in_parent);
+      if (p_info->child_wait_status.child_tid == new_process) {
+        found = true;
+        new_process_tid = new_process;
+        if (!p_info->success) {
+          new_process_tid = -1;
+        }
+        break;
+      }
+    }
+    if (!found) {
+      new_process_tid = -1;
+    }
+  }
+  intr_set_level (old_level);
+  
+  return new_process_tid;
+}
+
+tid_t
+process_execute_helper (const char *file_name) {
+
   char *fn_copy;
   tid_t tid;
   sema_init(&temporary, 0);
@@ -60,6 +98,7 @@ process_execute (const char *file_name)
     intr_set_level (old_level);
     sema_down (&info->sema_load);
   }
+
   return tid;
 }
 
@@ -101,6 +140,7 @@ start_process (void *file_name_)
   if_.eflags = FLAG_IF | FLAG_MBS;
 
   success = load (thread_current()->name, &if_.eip, &if_.esp);
+
   if(success && check_buffer_overflow(file_name)){
     int arg_len = strlen(file_name) + 1;
     int argc = num_of_args(file_name);
@@ -147,8 +187,7 @@ start_process (void *file_name_)
     thread_current()->parent_info->success = success;
     sema_up (&thread_current()->parent_info->sema_load);
   }
-  palloc_free_page (file_name);
-  
+  palloc_free_page (file_name);  
   if (!success) 
     thread_exit ();
 
@@ -628,6 +667,9 @@ int num_of_args(char* args) {
     }
     last_char = args;
     args++;
+  }
+  if (args[strlen(args) - 1] == ' ') {
+    count--;
   }
   return count;
 }

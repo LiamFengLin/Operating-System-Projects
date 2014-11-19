@@ -42,7 +42,8 @@ public class KVMessage implements Serializable {
      * @param msgType the type of this KVMessage
      */
     public KVMessage(String msgType) {
-        this(msgType, null);
+        // for sending
+    	this(msgType, null);
     }
 
     /**
@@ -52,7 +53,8 @@ public class KVMessage implements Serializable {
      * @param message the content of this KVMessage
      */
     public KVMessage(String msgType, String message) {
-        this.msgType = msgType;
+        // for receiving
+    	this.msgType = msgType;
         this.message = message;
     }
 
@@ -80,6 +82,8 @@ public class KVMessage implements Serializable {
      */
     public KVMessage(Socket sock, int timeout) throws KVException {
         // implement me
+    	// get from sock
+    	// call kv message constructor
     }
 
     /**
@@ -89,6 +93,7 @@ public class KVMessage implements Serializable {
      */
     public KVMessage(KVMessage kvm) {
         // implement me
+    	// copy
     }
 
     
@@ -103,6 +108,7 @@ public class KVMessage implements Serializable {
         ObjectFactory factory = new ObjectFactory();
         KVMessageType xmlStore = factory.createKVMessageType();
         //implement me
+        // put in key and val into the type, before sending
         return factory.createKVMessage(xmlStore);
     }
 
@@ -136,6 +142,7 @@ public class KVMessage implements Serializable {
      * @throws JAXBException
      */
     private KVMessageType unmarshal(InputStream is) throws JAXBException {
+    	// call after receiving to get a kv message which contains the key and the val we need
         JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
         return ((JAXBElement<KVMessageType>)unmarshaller.unmarshal(new NoCloseInputStream(is))).getValue();
@@ -148,6 +155,7 @@ public class KVMessage implements Serializable {
      * @throws KVException
      */
     private void marshalTo(OutputStream os) throws JAXBException, KVException {
+    	// call before sending
         JAXBContext jc = JAXBContext.newInstance(KVMessageType.class);
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders", "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -169,6 +177,7 @@ public class KVMessage implements Serializable {
      */
     public void sendMessage(Socket sock) throws KVException {
         // implement me
+    	// send the stored message to outputstream in socket
     }
 
     public String getKey() {

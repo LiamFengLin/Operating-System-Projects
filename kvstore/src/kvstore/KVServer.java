@@ -42,6 +42,7 @@ public class KVServer implements KeyValueInterface {
     @Override
     public void put(String key, String value) throws KVException {
         // implement me
+        // update cache and store
     }
 
     /**
@@ -55,6 +56,7 @@ public class KVServer implements KeyValueInterface {
     @Override
     public String get(String key) throws KVException {
         // implement me
+    	// get cache first; if not get from store
         return null;
     }
 

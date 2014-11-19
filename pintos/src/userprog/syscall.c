@@ -12,9 +12,10 @@
 #include "filesys/file.h"
 
 static void syscall_handler (struct intr_frame *);
+void exit_process(struct intr_frame *f UNUSED, int error_code);
 bool check_valid_ptr (void* vaddr);
 bool check_valid_buffer (void* vaddr);
-void exit_process(struct intr_frame *f UNUSED, int error_code);
+int next_valid_handle();
 
 void
 syscall_init (void) 
@@ -40,39 +41,14 @@ syscall_handler (struct intr_frame *f UNUSED)
   }
   if (args[0] == SYS_EXIT) {
     exit_process(f, (int) args[1]);  
-  } else if (args[0] == SYS_NULL) {
+  } else if (args[0] == SYS_NULL) { 
     f->eax = args[1] + 1;
   } else if (args[0] == SYS_EXEC) {
     if (check_valid_buffer(args[1])) {
-
-      enum intr_level old_level;
-      old_level = intr_disable ();
-
-      tid_t new_process;
-      new_process = process_execute (args[1]);
-      if (new_process == TID_ERROR) {
-        f->eax = -1;
-      } else {
-        struct list_elem *e;
-        struct list_elem *g;
-        bool found = false;
-        struct process_info *p_info;
-        for (e = list_begin (&thread_current()->children_info); e != list_end (&thread_current()->children_info); e = list_next (e)) {
-          p_info = list_entry (e, struct process_info, elem_in_parent);
-          if (p_info->child_wait_status.child_tid == new_process && p_info->success) {
-            found = true;
-            f->eax = new_process;
-            break;
-          }
-        }
-        if (!found) {
-          f->eax = -1;
-        }
-      }
-      intr_set_level (old_level);
+      f->eax = process_execute (args[1]);    
     } else {
       f->eax = -1;
-    }
+    }  
   } else if (args[0] == SYS_HALT) {
     shutdown_power_off();
   } else if (args[0] == SYS_WAIT) {
@@ -97,13 +73,17 @@ syscall_handler (struct intr_frame *f UNUSED)
       exit_process(f, -1);
     }else{
       int assign_handle = next_valid_handle();
-      struct file * opened = filesys_open (args[1]);
-      if(opened == NULL){
+      if (assign_handle == -1) {
         f->eax = -1;
-      }else{
-        thread_current()->thread_files.open_files[assign_handle] = opened;
-        thread_current()->thread_files.file_valid[assign_handle] = 1;
-        f->eax = assign_handle;
+      } else {
+        struct file * opened = filesys_open (args[1]);
+        if(opened == NULL){
+          f->eax = -1;
+        }else{
+          thread_current()->thread_files.open_files[assign_handle] = opened;
+          thread_current()->thread_files.file_valid[assign_handle] = 1;
+          f->eax = assign_handle;
+        }
       }
     }
   } else if (args[0] == SYS_FILESIZE){
@@ -225,3 +205,4 @@ int next_valid_handle(){
   }
   return -1;
 }
+
