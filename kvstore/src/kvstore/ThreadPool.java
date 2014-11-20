@@ -44,8 +44,9 @@ public class ThreadPool {
     public void addJob(Runnable r) throws InterruptedException {
         this.queueLock.lock();
         this.threadQueue.add(r);
-        this.queueLock.unlock();
         this.notEmpty.signal();
+        this.queueLock.unlock();
+        
         
     }
 
