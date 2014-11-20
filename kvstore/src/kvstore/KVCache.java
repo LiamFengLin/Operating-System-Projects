@@ -66,6 +66,9 @@ public class KVCache implements KeyValueInterface {
 	@Override
 	public String get(String key) {
 		int setNum = key.hashCode() % this.numSets;
+		if (setNum < 0) {
+			setNum += this.numSets;
+		}
 		LinkedList<String[]> keySet = this.sets[setNum];
 		ListIterator<String[]> listIterator = keySet.listIterator();
 		String[] mapTemp;
@@ -100,6 +103,10 @@ public class KVCache implements KeyValueInterface {
 	public void put(String key, String value) {
 		// implement me
 		int setNum = key.hashCode() % this.numSets;
+		if (setNum < 0) {
+			setNum += this.numSets;
+		}
+//		System.out.println(setNum);
 		LinkedList<String[]> keySet = this.sets[setNum];
 		if (keySet.size() < this.maxElemsPerSet) {
 			String[] entry = {key, value, "false"};
@@ -202,7 +209,7 @@ public class KVCache implements KeyValueInterface {
 		LinkedList<String[]> keySet;
 		KVCacheEntry entry;
 		KVSetType setType;
-		for (int i = 0; i < this.maxElemsPerSet; i++) {
+		for (int i = 0; i < this.numSets; i++) {
 			setType = factory.createKVSetType();
 			setType.setId(String.valueOf(i));
 			keySet = this.sets[i];
