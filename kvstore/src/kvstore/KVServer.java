@@ -68,10 +68,13 @@ public class KVServer implements KeyValueInterface {
     public String get(String key) throws KVException {
         // implement me
     	// get cache first; if not get from store
+    	Lock lock = this.dataCache.getLock(key);
+    	lock.lock();
         String val = this.dataCache.get(key);
         if(val == null) {
         	val = this.dataStore.get(key);
         }
+        lock.unlock();
         if (val == null) {
         	throw new KVException(KVConstants.ERROR_NO_SUCH_KEY);
         }
@@ -105,7 +108,6 @@ public class KVServer implements KeyValueInterface {
         String val = null;
 		try {
 			val = this.dataStore.get(key);
-			
 		} catch (KVException e) {
 		}
 		return val != null;	
