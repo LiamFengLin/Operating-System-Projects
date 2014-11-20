@@ -62,8 +62,9 @@ public class ThreadPool {
         while (this.threadQueue.size() == 0) {
         	this.notEmpty.await();
         }
+        Runnable task = this.threadQueue.pop();
         this.queueLock.unlock();
-        return this.threadQueue.pop();
+        return task;
         
     }
 
