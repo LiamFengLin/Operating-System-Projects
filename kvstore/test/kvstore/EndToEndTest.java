@@ -25,7 +25,7 @@ public class EndToEndTest extends EndToEndTemplate {
 		try {
 			client.put("testKey", "testValue");
 		} catch (KVException e) {
-			System.out.println(e.getKVMessage().getMessage());
+			throw new RuntimeException((Exception)e);
 		}
 		
 	}
