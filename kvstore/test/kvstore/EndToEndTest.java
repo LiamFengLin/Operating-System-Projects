@@ -18,15 +18,16 @@ import autograder.AGCategories.AGTestDetails;
 import autograder.AGCategories.AG_PROJ3_CODE;
 
 public class EndToEndTest extends EndToEndTemplate {
-	@Test(timeout = kTimeoutQuick)
+	@Test(timeout = kTimeoutSlow)
     @Category(AG_PROJ3_CODE.class)
     @AGTestDetails(points = 1, desc = "Single put request")
 	public void onePutRequest() {
 		try {
+			this.setUp();
 			this.client.put("testKey", "testValue");
-		} catch (KVException e) {
+			this.tearDown();
+		} catch (Exception e) {
 			throw new RuntimeException((Exception)e);
 		}
-		
 	}
 }
