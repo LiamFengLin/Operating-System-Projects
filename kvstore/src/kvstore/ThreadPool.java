@@ -1,14 +1,16 @@
 package kvstore;
 
 import java.util.LinkedList;
+import java.util.concurrent.locks.*;
 
 
 public class ThreadPool {
 
     /* Array of threads in the threadpool */
     public Thread threads[];
-    public LinkedList threadQueue;
-
+    public LinkedList<Runnable> threadQueue;
+    public Lock queueLock;
+    public Condition notEmpty;
 
     /**
      * Constructs a Threadpool with a certain number of threads.
@@ -17,6 +19,9 @@ public class ThreadPool {
      */
     public ThreadPool(int size) {
         threads = new Thread[size];
+        this.threadQueue = new LinkedList<Runnable>();
+        this.queueLock = new ReentrantLock();
+        this.notEmpty = queueLock.newCondition();
         // implement me
     }
 
@@ -30,7 +35,11 @@ public class ThreadPool {
      *         state. Your implementation may or may not actually throw this.
      */
     public void addJob(Runnable r) throws InterruptedException {
-        // implement me
+        this.queueLock.lock();
+        this.threadQueue.add(r);
+        this.queueLock.unlock();
+        this.notEmpty.signal();
+        
     }
 
     /**
@@ -41,7 +50,11 @@ public class ThreadPool {
      */
     public Runnable getJob() throws InterruptedException {
         // implement me
-        return null;
+        this.queueLock.lock();
+        while (this.threadQueue.size() == 0) {
+        	this.notEmpty.await();
+        }
+        return this.threadQueue.getFirst();
     }
 
     /**
@@ -65,7 +78,14 @@ public class ThreadPool {
          */
         @Override
         public void run() {
-            // implement me
+            while (true) {
+            	try {
+            		threadPool.getJob().run();
+            	} catch (InterruptedException e) {
+            		System.out.println(e.toString());
+            	}
+            	
+            }
         }
     }
 }
