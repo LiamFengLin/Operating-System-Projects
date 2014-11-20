@@ -75,6 +75,12 @@ public class KVClient implements KeyValueInterface {
     public void put(String key, String value) throws KVException {
         // implement me
     	// kv message
+    	if (key == null || key.equals("")) {
+    		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+    	if (value == null || value.equals("")) {
+    		throw new KVException(KVConstants.ERROR_INVALID_VALUE);
+    	}
     	this.lock.lock();
     	KVMessage kvMessage = new KVMessage(PUT_REQ);
     	kvMessage.setKey(key);
@@ -85,7 +91,8 @@ public class KVClient implements KeyValueInterface {
     	KVMessage kvReturnMessage = new KVMessage(sock);
         String returnMessage = kvReturnMessage.getMessage();
         if (!returnMessage.equals(KVConstants.SUCCESS)){
-        	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+        	
+        	throw new KVException(returnMessage);
         }
     	
         closeHost(sock);
@@ -103,6 +110,10 @@ public class KVClient implements KeyValueInterface {
     public String get(String key) throws KVException {
         // implement me
     	// kv message
+    	if (key == null || key.equals("")) {
+    		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+
     	this.lock.lock();
     	KVMessage kvMessage = new KVMessage(GET_REQ);
     	kvMessage.setKey(key);
@@ -113,10 +124,8 @@ public class KVClient implements KeyValueInterface {
     	String returnVal = kvReturnMessage.getValue();
     	
     	String returnMessage = kvReturnMessage.getMessage();
-    	if (returnMessage != null && returnMessage.equals(KVConstants.ERROR_NO_SUCH_KEY)){
-        	throw new KVException(KVConstants.ERROR_NO_SUCH_KEY);
-        } else if (returnMessage != null && returnMessage.equals(KVConstants.ERROR_OVERSIZED_KEY)){
-        	throw new KVException(KVConstants.ERROR_OVERSIZED_KEY);
+    	if (returnMessage != null){
+        	throw new KVException(returnMessage);
         }
     	
     	closeHost(sock);
@@ -135,6 +144,10 @@ public class KVClient implements KeyValueInterface {
     public void del(String key) throws KVException {
         // implement me
     	// kv message
+    	if (key == null || key.equals("")) {
+    		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+
     	this.lock.lock();
     	Socket sock = connectHost();
     	KVMessage kvMessage = new KVMessage(DEL_REQ);
@@ -147,7 +160,7 @@ public class KVClient implements KeyValueInterface {
     		throw new KVException(KVConstants.ERROR_PARSER);
     	}
         if (!returnMessage.equals(KVConstants.SUCCESS)){
-        	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+        	throw new KVException(returnMessage);
         }
     	
     	closeHost(sock);

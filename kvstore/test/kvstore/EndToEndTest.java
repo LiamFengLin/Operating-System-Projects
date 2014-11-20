@@ -14,6 +14,7 @@ import kvstore.Utils.RandomString;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+
 import autograder.AGCategories.AGTestDetails;
 import autograder.AGCategories.AG_PROJ3_CODE;
 
@@ -103,7 +104,7 @@ public class EndToEndTest extends EndToEndTemplate {
     @Category(AG_PROJ3_CODE.class)
     @AGTestDetails(points = 1, desc = "Put delete put delete")
 	public void putDelPutDel(){
-		int TestLength = 10;
+		int TestLength = 3;
 		String[] TestKeys = new String[TestLength];
 		String[] TestValues = new String[TestLength];
 		
@@ -139,178 +140,178 @@ public class EndToEndTest extends EndToEndTemplate {
 			}
 		}	
 	}
-//	
-//	@Test(timeout = kTimeoutSlow)
-//    @Category(AG_PROJ3_CODE.class)
-//	@AGTestDetails(points = 1, desc = "Put delete put delete 10 times")
-//	public void putDelIterate(){
-//		int TestLength = 10;
-//		String[] TestKeys = new String[TestLength];
-//		String[] TestValues = new String[TestLength];
-//		for(int i = 0; i < TestLength; i ++){
-//			TestKeys[i] = "Key" + Integer.toString(i);
-//			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
-//		}
-//		
-//		for(int j = 0; j < 10; j ++){
-//			for(int i = 0; i < TestLength; i ++){
-//				
-//				/* Try to get the values should throw exception*/
-//				try {
-//					client.get(TestKeys[i]);
-//					fail("Client did not throw exception!");
-//				} catch (KVException kve) {
-//					// TODO Auto-generated catch block
-//					assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
-//				}
-//				
-//				/* put values */
-//				try {
-//					this.client.put(TestKeys[i], TestValues[i]);
-//				} catch (KVException kve) {
-//					// TODO Auto-generated catch block
-//					fail("Client threw unexpected exception!");
-//				}
-//				
-//				/* get values */
-//				try {
-//					assertEquals(TestValues[i], client.get(TestKeys[i]));
-//				} catch (KVException kve) {
-//					// TODO Auto-generated catch block
-//					fail("Client threw unexpected exception!");
-//				}
-//				
-//				/* delete values*/
-//				try {
-//					this.client.del(TestKeys[i]);
-//				} catch (KVException e) {
-//					// TODO Auto-generated catch block
-//					fail("Client threw unexpected exception!");
-//				}
-//				
-//				/* Try to get the values should throw exception*/
-//				try {
-//					client.get(TestKeys[i]);
-//					fail("Client did not throw exception!");
-//				} catch (KVException kve) {
-//					// TODO Auto-generated catch block
-//					assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
-//				}
-//				
-//			}
-//		}
-//	}
-//	
-//	@Test(timeout = kTimeoutSlow)
-//    @Category(AG_PROJ3_CODE.class)
-//	@AGTestDetails(points = 1, desc = "delete non existant keys")
-//	public void delNonexistant(){
-//		int TestLength = 10;
-//		String[] TestKeys = new String[TestLength];
-//		String[] TestValues = new String[TestLength];
-//		for(int i = 0; i < TestLength; i ++){
-//			TestKeys[i] = "Key" + Integer.toString(i);
-//			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
-//		}
-//		
-//		/* delete values should throw exception*/
-//		for(int i = 0; i < TestLength; i++){
-//			try {
-//				this.client.del(TestKeys[i]);
-//				fail("Client did not throw exception!");
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
-//			}
-//		}
-//		
-//		/* Put values*/
-//		for(int i = 0; i < TestLength; i++){
-//			try {
-//				this.client.put(TestKeys[i], TestValues[i]);
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				fail("Client threw unexpected exception!");
-//			}
-//		}
-//		
-//		/* Delete values*/
-//		for(int i = 0; i < TestLength; i++){
-//			try {
-//				this.client.del(TestKeys[i]);
-//			} catch (KVException e) {
-//				// TODO Auto-generated catch block
-//				fail("Client threw unexpected exception!");
-//			}
-//		}
-//		
-//		/* delete values should throw exception*/
-//		for(int i = 0; i < TestLength; i++){
-//			try {
-//				this.client.del(TestKeys[i]);
-//				fail("Client did not throw exception!");
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
-//			}
-//		}
-//	}
 	
-//	@Test(timeout = kTimeoutSlow)
-//    @Category(AG_PROJ3_CODE.class)
-//	@AGTestDetails(points = 1, desc = "key and value too long")
-//	public void keyValueTooLong(){
-//		int TestLength = 10;
-//		String[] TestKeys = new String[TestLength];
-//		String[] TestValues = new String[TestLength];
-//		for(int i = 0; i < TestLength; i ++){
-//			TestKeys[i] = "Key" + Integer.toString(i);
-//			for(int k = 0; k < 256*1024 + 3; k ++){
+	@Test(timeout = kTimeoutSlow)
+    @Category(AG_PROJ3_CODE.class)
+	@AGTestDetails(points = 1, desc = "Put delete put delete 10 times")
+	public void putDelIterate(){
+		int TestLength = 3;
+		String[] TestKeys = new String[TestLength];
+		String[] TestValues = new String[TestLength];
+		for(int i = 0; i < TestLength; i ++){
+			TestKeys[i] = "Key" + Integer.toString(i);
+			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
+		}
+		
+		for(int j = 0; j < 10; j ++){
+			for(int i = 0; i < TestLength; i ++){
+				
+				/* Try to get the values should throw exception*/
+				try {
+					client.get(TestKeys[i]);
+					fail("Client did not throw exception!");
+				} catch (KVException kve) {
+					// TODO Auto-generated catch block
+					assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
+				}
+				
+				/* put values */
+				try {
+					this.client.put(TestKeys[i], TestValues[i]);
+				} catch (KVException kve) {
+					// TODO Auto-generated catch block
+					fail("Client threw unexpected exception!");
+				}
+				
+				/* get values */
+				try {
+					assertEquals(TestValues[i], client.get(TestKeys[i]));
+				} catch (KVException kve) {
+					// TODO Auto-generated catch block
+					fail("Client threw unexpected exception!");
+				}
+				
+				/* delete values*/
+				try {
+					this.client.del(TestKeys[i]);
+				} catch (KVException e) {
+					// TODO Auto-generated catch block
+					fail("Client threw unexpected exception!");
+				}
+				
+				/* Try to get the values should throw exception*/
+				try {
+					client.get(TestKeys[i]);
+					fail("Client did not throw exception!");
+				} catch (KVException kve) {
+					// TODO Auto-generated catch block
+					assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
+				}
+				
+			}
+		}
+	}
+	
+	@Test(timeout = kTimeoutSlow)
+    @Category(AG_PROJ3_CODE.class)
+	@AGTestDetails(points = 1, desc = "delete non existant keys")
+	public void delNonexistant(){
+		int TestLength = 3;
+		String[] TestKeys = new String[TestLength];
+		String[] TestValues = new String[TestLength];
+		for(int i = 0; i < TestLength; i ++){
+			TestKeys[i] = "Key" + Integer.toString(i);
+			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
+		}
+		
+		/* delete values should throw exception*/
+		for(int i = 0; i < TestLength; i++){
+			try {
+				this.client.del(TestKeys[i]);
+				fail("Client did not throw exception!");
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
+			}
+		}
+		
+		/* Put values*/
+		for(int i = 0; i < TestLength; i++){
+			try {
+				this.client.put(TestKeys[i], TestValues[i]);
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				fail("Client threw unexpected exception!");
+			}
+		}
+		
+		/* Delete values*/
+		for(int i = 0; i < TestLength; i++){
+			try {
+				this.client.del(TestKeys[i]);
+			} catch (KVException e) {
+				// TODO Auto-generated catch block
+				fail("Client threw unexpected exception!");
+			}
+		}
+		
+		/* delete values should throw exception*/
+		for(int i = 0; i < TestLength; i++){
+			try {
+				this.client.del(TestKeys[i]);
+				fail("Client did not throw exception!");
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
+			}
+		}
+	}
+	
+	@Test(timeout = kTimeoutSlow)
+    @Category(AG_PROJ3_CODE.class)
+	@AGTestDetails(points = 1, desc = "key and value too long")
+	public void keyValueTooLong(){
+		int TestLength = 1;
+		String[] TestKeys = new String[TestLength];
+		String[] TestValues = new String[TestLength];
+		for(int i = 0; i < TestLength; i ++){
+			TestKeys[i] = new String(new char[1024*256 + 1]).replace('\0', ' ');
+//			for(int k = 0; k < 256 + 3; k ++){
 //				TestKeys[i] += Integer.toString(i);
 //			}
-//			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
-//			try {
-//				this.client.put(TestKeys[i], TestValues[i]);
-//				fail("Client did not throw exception!");
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_OVERSIZED_KEY, kve);
-//			}
-//			try {
-//				this.client.put(TestValues[i], TestKeys[i]);
-//				fail("Client did not throw exception!");
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_OVERSIZED_VALUE, kve);
-//			}
-//		}
-//	}
+			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
+			try {
+				this.client.put(TestKeys[i], TestValues[i]);
+				fail("Client did not throw exception!");
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				assertKVExceptionEquals(ERROR_OVERSIZED_KEY, kve);
+			}
+			try {
+				this.client.put(TestValues[i], TestKeys[i]);
+				fail("Client did not throw exception!");
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				assertKVExceptionEquals(ERROR_OVERSIZED_VALUE, kve);
+			}
+		}
+	}
 	
-//	@Test(timeout = kTimeoutSlow)
-//    @Category(AG_PROJ3_CODE.class)
-//	@AGTestDetails(points = 1, desc = "key and value empty")
-//	public void emptyKeyValue(){
-//		int TestLength = 10;
-//		String[] TestKeys = new String[TestLength];
-//		String[] TestValues = new String[TestLength];
-//		for(int i = 0; i < TestLength; i ++){
-//			TestKeys[i] = "";
-//			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
-//			try {
-//				this.client.put(TestKeys[i], TestValues[i]);
-//				fail("Client did not throw exception!");
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_INVALID_KEY, kve);
-//			}
-//			
-//			try {
-//				this.client.put(TestValues[i], TestKeys[i]);
-//				fail("Client did not throw exception!");
-//			} catch (KVException kve) {
-//				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_INVALID_VALUE, kve);
-//			}
-//		}
-//	}
+	@Test(timeout = kTimeoutSlow)
+    @Category(AG_PROJ3_CODE.class)
+	@AGTestDetails(points = 1, desc = "key and value empty")
+	public void emptyKeyValue(){
+		int TestLength = 3;
+		String[] TestKeys = new String[TestLength];
+		String[] TestValues = new String[TestLength];
+		for(int i = 0; i < TestLength; i ++){
+			TestKeys[i] = "";
+			TestValues[i] = "Value" + Integer.toString(i) + "Amy";
+			try {
+				this.client.put(TestKeys[i], TestValues[i]);
+				fail("Client did not throw exception!");
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				assertKVExceptionEquals(ERROR_INVALID_KEY, kve);
+			}
+			
+			try {
+				this.client.put(TestValues[i], TestKeys[i]);
+				fail("Client did not throw exception!");
+			} catch (KVException kve) {
+				// TODO Auto-generated catch block
+				assertKVExceptionEquals(ERROR_INVALID_VALUE, kve);
+			}
+		}
+	}
 }

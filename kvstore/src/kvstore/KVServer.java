@@ -49,14 +49,15 @@ public class KVServer implements KeyValueInterface {
     	if (value == null || value.equals("")) {
     		throw new KVException(KVConstants.ERROR_INVALID_VALUE);
     	}
+    	if (key.length() > MAX_KEY_SIZE) {
+    		throw new KVException(ERROR_OVERSIZED_KEY);
+    	}
+    	if (value.length() > MAX_VAL_SIZE) {
+    		throw new KVException(ERROR_OVERSIZED_VALUE);
+    	}
     	Lock lock = null;
     	try {
-    		if (key.length() > MAX_KEY_SIZE) {
-        		throw new KVException(ERROR_OVERSIZED_KEY);
-        	}
-        	if (value.length() > MAX_VAL_SIZE) {
-        		throw new KVException(ERROR_OVERSIZED_VALUE);
-        	}
+    		
         	lock = this.dataCache.getLock(key);
         	if (lock != null){
             	lock.lock();
@@ -89,6 +90,9 @@ public class KVServer implements KeyValueInterface {
     	// get cache first; if not get from store
     	if (key == null || key.equals("")) {
     		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+    	if (key.length() > MAX_KEY_SIZE) {
+    		throw new KVException(ERROR_OVERSIZED_KEY);
     	}
     	Lock lock = null;
     	try {
@@ -123,6 +127,9 @@ public class KVServer implements KeyValueInterface {
     public void del(String key) throws KVException {
     	if (key == null || key.equals("")) {
     		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+    	if (key.length() > MAX_KEY_SIZE) {
+    		throw new KVException(ERROR_OVERSIZED_KEY);
     	}
     	Lock lock = null;
     	try{
