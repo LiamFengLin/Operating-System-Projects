@@ -42,7 +42,7 @@ public class KVClient implements KeyValueInterface {
     public Socket connectHost() throws KVException {
         // implement me
         try {
-        	Socket socket = new Socket(server, port);
+        	Socket socket = new Socket(this.server, this.port);
         	return socket;
         } catch (Exception e) {
         	throw new KVException(ERROR_COULD_NOT_CONNECT);
@@ -77,7 +77,17 @@ public class KVClient implements KeyValueInterface {
     	kvMessage.setValue(value);
     	Socket sock = connectHost();
     	kvMessage.sendMessage(sock);
-    	this.closeHost(sock);
+    	
+    	KVMessage kvReturnMessage = new KVMessage(sock);
+    	String returnVal = kvReturnMessage.getValue();
+        String type = kvReturnMessage.getMsgType();
+        System.out.println(type);
+        if (!type.equals(KVConstants.SUCCESS)){
+        	
+        	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+        }
+    	
+        closeHost(sock);
     }
 
     /**
@@ -91,10 +101,21 @@ public class KVClient implements KeyValueInterface {
     public String get(String key) throws KVException {
         // implement me
     	// kv message
+    	KVMessage kvMessage = new KVMessage(GET_REQ);
+    	kvMessage.setKey(key);
     	Socket sock = connectHost();
-    	KVMessage kvMessage = new KVMessage(sock);
-    	this.closeHost(sock);
-        return kvMessage.getValue();
+    	kvMessage.sendMessage(sock);
+    	
+    	KVMessage kvReturnMessage = new KVMessage(sock);
+    	String returnVal = kvReturnMessage.getValue();
+        String type = kvReturnMessage.getMsgType();
+        if (!type.equals(KVConstants.SUCCESS)){
+        	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+        }
+    	
+    	closeHost(sock);
+        
+        return returnVal;
     }
 
     /**
@@ -112,6 +133,15 @@ public class KVClient implements KeyValueInterface {
     	this.closeHost(sock);
     	kvMessage.setKey(key);
     	kvMessage.sendMessage(sock);
+    	
+    	KVMessage kvReturnMessage = new KVMessage(sock);
+    	String returnVal = kvReturnMessage.getValue();
+        String type = kvReturnMessage.getMsgType();
+        if (!type.equals(KVConstants.SUCCESS)){
+        	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+        }
+    	
+    	closeHost(sock);
     }
 
 
