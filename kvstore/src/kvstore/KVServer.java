@@ -75,9 +75,6 @@ public class KVServer implements KeyValueInterface {
         	val = this.dataStore.get(key);
         }
         lock.unlock();
-        if (val == null) {
-        	throw new KVException(KVConstants.ERROR_NO_SUCH_KEY);
-        }
     	return val;
     }
 

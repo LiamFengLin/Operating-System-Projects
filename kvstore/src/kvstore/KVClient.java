@@ -106,6 +106,13 @@ public class KVClient implements KeyValueInterface {
     	KVMessage kvReturnMessage = new KVMessage(sock);
     	String returnVal = kvReturnMessage.getValue();
     	
+    	String returnMessage = kvReturnMessage.getMessage();
+    	if (returnMessage.equals(KVConstants.ERROR_NO_SUCH_KEY)){
+        	throw new KVException(KVConstants.ERROR_NO_SUCH_KEY);
+        } else if (returnMessage.equals(KVConstants.ERROR_OVERSIZED_KEY)){
+        	throw new KVException(KVConstants.ERROR_OVERSIZED_KEY);
+        }
+    	
     	closeHost(sock);
         
         return returnVal;
