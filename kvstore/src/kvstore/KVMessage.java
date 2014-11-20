@@ -203,7 +203,6 @@ public class KVMessage implements Serializable {
 			OutputStream os = sock.getOutputStream();
 			marshalTo(os);
 			sock.shutdownOutput();
-			// eof
 		} catch (IOException e) {
 			throw new KVException(ERROR_COULD_NOT_SEND_DATA);
 		} catch (JAXBException e) {
