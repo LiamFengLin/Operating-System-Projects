@@ -1,10 +1,13 @@
 package kvstore;
 
+import java.util.LinkedList;
+
 
 public class ThreadPool {
 
     /* Array of threads in the threadpool */
     public Thread threads[];
+    public LinkedList threadQueue;
 
 
     /**
@@ -14,7 +17,6 @@ public class ThreadPool {
      */
     public ThreadPool(int size) {
         threads = new Thread[size];
-
         // implement me
     }
 
