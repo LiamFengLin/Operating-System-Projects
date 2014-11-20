@@ -4,19 +4,22 @@ import static kvstore.KVConstants.ERROR_NO_SUCH_KEY;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.io.FileWriter;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+
 import kvstore.xml.KVPairType;
 import kvstore.xml.KVStoreType;
 import kvstore.xml.ObjectFactory;
-
 
 /**
  * This is a basic key-value store. Ideally this would go to disk, or some other
@@ -136,6 +139,13 @@ public class KVStore implements KeyValueInterface {
     public void dumpToFile(String fileName) {
         // implement me
     	// xml form write
+	    try {
+	    	String storeXML = this.toXML();
+	    	FileWriter fw = new FileWriter(fileName);
+			fw.write(storeXML);
+			fw.close();
+	    } catch (Exception e) {
+		}
     }
 
     /**
@@ -148,7 +158,18 @@ public class KVStore implements KeyValueInterface {
      */
     public void restoreFromFile(String fileName) {
         resetStore();
-
-        // implement me
+        File kvStoreFile = new File(fileName);
+        String key;
+        String val;
+        try {
+			KVStoreType kvStore = unmarshal(kvStoreFile);
+			List<KVPairType> kvPairList = kvStore.getKVPair();
+			for (KVPairType pair: kvPairList){
+				key = pair.getKey();
+				val = pair.getValue();
+				put(key, val);
+			}
+		} catch (JAXBException e) {
+		}
     }
 }

@@ -23,6 +23,9 @@ import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import java.util.Scanner;
+import java.lang.StringBuilder;
+
 /**
  * This is the object that is used to generate the XML based messages
  * for communication between clients and servers.
@@ -84,6 +87,15 @@ public class KVMessage implements Serializable {
         // implement me
     	// get from sock
     	// call kv message constructor
+    	try {
+			InputStream is = sock.getInputStream();
+			KVMessageType kvMessage = unmarshal(is);
+			setKey(kvMessage.getKey());
+			setValue(kvMessage.getValue());
+		} catch (Exception e) {
+			throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+		}
+    	
     }
 
     /**
@@ -93,7 +105,9 @@ public class KVMessage implements Serializable {
      */
     public KVMessage(KVMessage kvm) {
         // implement me
-    	// copy
+    	setKey(kvm.getKey());
+    	setValue(kvm.getValue());
+    	setMessage(kvm.getMessage());
     }
 
     
@@ -109,6 +123,9 @@ public class KVMessage implements Serializable {
         KVMessageType xmlStore = factory.createKVMessageType();
         //implement me
         // put in key and val into the type, before sending
+        xmlStore.setKey(this.key);
+        xmlStore.setValue(this.value);
+        xmlStore.setType(this.msgType);
         return factory.createKVMessage(xmlStore);
     }
 
@@ -178,6 +195,16 @@ public class KVMessage implements Serializable {
     public void sendMessage(Socket sock) throws KVException {
         // implement me
     	// send the stored message to outputstream in socket
+    	try {
+			OutputStream os = sock.getOutputStream();
+			marshalTo(os);
+			sock.shutdownOutput();
+			// eof
+		} catch (IOException e) {
+			throw new KVException(KVConstants.ERROR_COULD_NOT_SEND_DATA);
+		} catch (JAXBException e) {
+			throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+		}
     }
 
     public String getKey() {

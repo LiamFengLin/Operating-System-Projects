@@ -45,7 +45,7 @@ public class KVClient implements KeyValueInterface {
         	Socket socket = new Socket(server, port);
         	return socket;
         } catch (Exception e) {
-        	throw new KVException("Unable to create or connect socket");
+        	throw new KVException(KVConstants.ERROR_COULD_NOT_CONNECT);
         }
     }
 
@@ -72,6 +72,11 @@ public class KVClient implements KeyValueInterface {
     public void put(String key, String value) throws KVException {
         // implement me
     	// kv message
+    	KVMessage kvMessage = new KVMessage(KVConstants.PUT_REQ);
+    	kvMessage.setKey(key);
+    	kvMessage.setValue(value);
+    	Socket sock = connectHost();
+    	kvMessage.sendMessage(sock);
     }
 
     /**
@@ -85,7 +90,9 @@ public class KVClient implements KeyValueInterface {
     public String get(String key) throws KVException {
         // implement me
     	// kv message
-        return null;
+    	Socket sock = connectHost();
+    	KVMessage kvMessage = new KVMessage(sock);
+        return kvMessage.getValue();
     }
 
     /**
@@ -98,6 +105,10 @@ public class KVClient implements KeyValueInterface {
     public void del(String key) throws KVException {
         // implement me
     	// kv message
+    	Socket sock = connectHost();
+    	KVMessage kvMessage = new KVMessage(sock);
+    	kvMessage.setKey(key);
+    	kvMessage.sendMessage(sock);
     }
 
 
