@@ -148,12 +148,9 @@ public class KVClient implements KeyValueInterface {
     	// kv message
     	this.lock.lock();
     	Socket sock = connectHost();
-    	KVMessage kvMessage = new KVMessage(sock);
-    	this.closeHost(sock);
     	
     	KVMessage kvMessage = new KVMessage(DEL_REQ);
     	kvMessage.setKey(key);
-    	Socket sock = connectHost();
     	kvMessage.sendMessage(sock);
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
