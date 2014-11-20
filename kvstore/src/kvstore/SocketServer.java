@@ -92,7 +92,7 @@ public class SocketServer {
     		Socket clientSocket = this.server.accept();
     		this.handler.handle(clientSocket);
     		while (true) {
-    			if (stopped = true) {
+    			if (stopped == true) {
     				clientSocket.close();
     			}
     			Thread.sleep(TIMEOUT);
