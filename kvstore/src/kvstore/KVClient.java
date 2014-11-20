@@ -80,6 +80,9 @@ public class KVClient implements KeyValueInterface {
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
         String returnMessage = kvReturnMessage.getMessage();
+        System.out.println(kvReturnMessage.getMsgType());
+//        System.out.println(kvReturnMessage.getValue());
+        System.out.println(returnMessage);
         if (!returnMessage.equals(KVConstants.SUCCESS)){
         	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
         }
@@ -105,7 +108,9 @@ public class KVClient implements KeyValueInterface {
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
     	String returnVal = kvReturnMessage.getValue();
-    	
+    	System.out.println("&&&&&&&&&&&&&&");
+    	System.out.println(returnVal);
+    	System.out.println("&&&&&&&&&&&&&&");
     	closeHost(sock);
         
         return returnVal;

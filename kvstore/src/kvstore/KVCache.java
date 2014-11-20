@@ -160,6 +160,9 @@ public class KVCache implements KeyValueInterface {
 	public void del(String key) {
 		// implement me
 		int setNum = key.hashCode() % this.numSets;
+		if (setNum < 0) {
+			setNum += this.numSets;
+		}
 		LinkedList<String[]> keySet = this.sets[setNum];
 		ListIterator<String[]> listIterator = keySet.listIterator();
 		String[] mapTemp;
@@ -187,6 +190,9 @@ public class KVCache implements KeyValueInterface {
 
 	public Lock getLock(String key) {
 		int setNum = key.hashCode() % this.numSets;
+		if (setNum < 0) {
+			setNum += this.numSets;
+		}
 		return this.locks[setNum];
 	}
 

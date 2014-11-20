@@ -26,7 +26,7 @@ public class EndToEndTest extends EndToEndTemplate {
 			System.out.println("===============");
 			this.client.put("testKey", "testValue");
 			System.out.println("===============");
-//			System.out.println(this.client.get("testKey"));
+			System.out.println(this.client.get("testKey"));
 			System.out.println("===============");
 			
 		} catch (Exception e) {
