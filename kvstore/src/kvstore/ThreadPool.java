@@ -22,6 +22,13 @@ public class ThreadPool {
         this.threadQueue = new LinkedList<Runnable>();
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
+        try {
+        	this.addJob(new WorkerThread(this));
+        	this.getJob().run();
+        } catch (InterruptedException e) {
+        	System.out.println(e.toString());
+        }
+        
         // implement me
     }
 
@@ -54,7 +61,7 @@ public class ThreadPool {
         while (this.threadQueue.size() == 0) {
         	this.notEmpty.await();
         }
-        return this.threadQueue.getFirst();
+        return this.threadQueue.pop();
     }
 
     /**
@@ -78,14 +85,14 @@ public class ThreadPool {
          */
         @Override
         public void run() {
-            while (true) {
-            	try {
+        	try {
+        		while (true) {
             		threadPool.getJob().run();
-            	} catch (InterruptedException e) {
-            		System.out.println(e.toString());
             	}
             	
-            }
+        	} catch (InterruptedException e) {
+             	System.out.println(e.toString());
+             }
         }
     }
 }
