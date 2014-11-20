@@ -128,10 +128,10 @@ public class KVClient implements KeyValueInterface {
     public void del(String key) throws KVException {
         // implement me
     	// kv message
-    	Socket sock = connectHost();
-    	KVMessage kvMessage = new KVMessage(sock);
-    	this.closeHost(sock);
+    	
+    	KVMessage kvMessage = new KVMessage(DEL_REQ);
     	kvMessage.setKey(key);
+    	Socket sock = connectHost();
     	kvMessage.sendMessage(sock);
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
