@@ -47,6 +47,7 @@ public class KVCache implements KeyValueInterface {
 		this.numSets = numSets;
 		this.maxElemsPerSet = maxElemsPerSet;
 		this.sets = new LinkedList[numSets];
+		this.locks = new Lock[numSets];
 		for (int i = 0; i < numSets; i++) {
 			this.sets[i] = new LinkedList<String[]>();
 			this.locks[i] = new ReentrantLock();
