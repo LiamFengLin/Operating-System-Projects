@@ -87,6 +87,18 @@ public class SocketServer {
      */
     public void start() throws IOException {
      // implement me
+    	try {
+    		Socket clientSocket = this.server.accept();
+    		this.handler.handle(clientSocket);
+    		while (true) {
+    			if (stopped = true) {
+    				clientSocket.close();
+    			}
+    			Thread.sleep(TIMEOUT);
+    		}
+    	} catch (Exception e) {
+    		throw new IOException();
+    	}
     }
 
     /**

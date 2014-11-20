@@ -36,6 +36,9 @@ public class ServerClientHandler implements NetworkHandler {
      */
     public ServerClientHandler(KVServer kvServer, int connections) {
         // implement me
+    	this.threadPool = new ThreadPool(connections);
+    	this.kvServer = kvServer;
+    	
     }
 
     /**
@@ -47,6 +50,38 @@ public class ServerClientHandler implements NetworkHandler {
     @Override
     public void handle(Socket client) {
         // implement me
+    	KVServer server =this.kvServer;
+    	Thread handlerThread = new Thread() {
+    		@Override
+    		public void run() {
+    			try {
+    				while (true) {
+    					KVMessage message = new KVMessage(client);
+    					if (message.getMsgType() == KVConstants.GET_REQ) {
+    						message.sendMessage(client);
+    					} else if (message.getMsgType() == KVConstants.DEL_REQ) {
+    						server.del(message.getKey());
+    					} else if (message.getMsgType() == KVConstants.PUT_REQ) {
+    						server.put(message.getKey(), message.getValue());
+    					} 
+    					
+    				}
+    			} catch (KVException e) {
+    				try {
+    					e.getKVMessage().sendMessage(client);
+    				} catch (KVException e_again) {
+    					System.out.println(e_again.toString());
+    				}
+    				
+    			}
+    		}
+    	};
+    	try {
+    		this.threadPool.addJob(handlerThread);
+    	} catch (InterruptedException e) {
+    		System.out.println(e.getMessage());
+    	}
+    	
     }
     
     // implement me
