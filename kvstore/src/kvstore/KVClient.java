@@ -13,6 +13,7 @@ import static kvstore.KVConstants.SUCCESS;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.locks.*;
 
 /**
  * Client API used to issue requests to key-value server.
@@ -21,6 +22,7 @@ public class KVClient implements KeyValueInterface {
 
     public String server;
     public int port;
+    public Lock lock;
 
     /**
      * Constructs a KVClient connected to a server.
@@ -31,6 +33,7 @@ public class KVClient implements KeyValueInterface {
     public KVClient(String server, int port) {
         this.server = server;
         this.port = port;
+        this.lock = new ReentrantLock();
     }
 
     /**
@@ -72,6 +75,7 @@ public class KVClient implements KeyValueInterface {
     public void put(String key, String value) throws KVException {
         // implement me
     	// kv message
+    	this.lock.lock();
     	KVMessage kvMessage = new KVMessage(PUT_REQ);
     	kvMessage.setKey(key);
     	kvMessage.setValue(value);
@@ -81,13 +85,13 @@ public class KVClient implements KeyValueInterface {
     	KVMessage kvReturnMessage = new KVMessage(sock);
         String returnMessage = kvReturnMessage.getMessage();
         System.out.println(kvReturnMessage.getMsgType());
-//        System.out.println(kvReturnMessage.getValue());
         System.out.println(returnMessage);
         if (!returnMessage.equals(KVConstants.SUCCESS)){
         	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
         }
     	
         closeHost(sock);
+        this.lock.unlock();
     }
 
     /**
@@ -101,17 +105,33 @@ public class KVClient implements KeyValueInterface {
     public String get(String key) throws KVException {
         // implement me
     	// kv message
+    	this.lock.lock();
+    	System.out.println("started get function");
     	KVMessage kvMessage = new KVMessage(GET_REQ);
+    	System.out.println("1");
     	kvMessage.setKey(key);
+    	System.out.println("2");
     	Socket sock = connectHost();
+    	System.out.println("3");
     	kvMessage.sendMessage(sock);
+    	System.out.println("4");
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
+    	System.out.println("5");
     	String returnVal = kvReturnMessage.getValue();
     	System.out.println("&&&&&&&&&&&&&&");
     	System.out.println(returnVal);
     	System.out.println("&&&&&&&&&&&&&&");
+    	
+    	String returnMessage = kvReturnMessage.getMessage();
+    	if (returnMessage != null && returnMessage.equals(KVConstants.ERROR_NO_SUCH_KEY)){
+        	throw new KVException(KVConstants.ERROR_NO_SUCH_KEY);
+        } else if (returnMessage != null && returnMessage.equals(KVConstants.ERROR_OVERSIZED_KEY)){
+        	throw new KVException(KVConstants.ERROR_OVERSIZED_KEY);
+        }
+    	
     	closeHost(sock);
+    	this.lock.unlock();
         
         return returnVal;
     }
@@ -126,6 +146,7 @@ public class KVClient implements KeyValueInterface {
     public void del(String key) throws KVException {
         // implement me
     	// kv message
+    	this.lock.lock();
     	Socket sock = connectHost();
     	KVMessage kvMessage = new KVMessage(sock);
     	this.closeHost(sock);
@@ -139,6 +160,7 @@ public class KVClient implements KeyValueInterface {
         }
     	
     	closeHost(sock);
+    	this.lock.unlock();
     }
 
 

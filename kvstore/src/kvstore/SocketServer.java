@@ -71,6 +71,7 @@ public class SocketServer {
             } else {
             	this.server = new ServerSocket(this.port);
             }
+    		this.server.setSoTimeout(TIMEOUT);
     	} catch (IOException e) {
     		throw new IOException();
     	}
@@ -86,15 +87,29 @@ public class SocketServer {
      *         listening for or servicing requests
      */
     public void start() throws IOException {
-     // implement me
+    	// implement me
     	try {
-    		Socket clientSocket = this.server.accept();
-    		this.handler.handle(clientSocket);
+    		Socket clientSocket;
     		while (true) {
-    			if (stopped == true) {
-    				clientSocket.close();
+    			try {
+    				clientSocket = this.server.accept();
+    				System.out.println("socket created");
+    				this.handler.handle(clientSocket);
+    				if (stopped == true) {
+    					clientSocket.getOutputStream().close();
+    					clientSocket.getInputStream().close();
+    					clientSocket.close();
+    					break;
+    				}
+
+    				Thread.sleep(TIMEOUT);
+    			} catch (SocketTimeoutException s) {
+    				if (stopped == true) {
+    					break;
+    				}
+    				continue;
     			}
-    			Thread.sleep(TIMEOUT);
+
     		}
     	} catch (Exception e) {
     		throw new IOException();

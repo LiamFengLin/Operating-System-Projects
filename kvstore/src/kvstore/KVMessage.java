@@ -89,7 +89,7 @@ public class KVMessage implements Serializable {
     	// call kv message constructor
     	try {
     		if (timeout == 0) {
-				InputStream is = sock.getInputStream();
+				InputStream is = new NoCloseInputStream(sock.getInputStream());
 				
 				KVMessageType kvMessage = unmarshal(is);
 				this.key = kvMessage.getKey();

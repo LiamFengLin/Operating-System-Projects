@@ -55,37 +55,32 @@ public class ServerClientHandler implements NetworkHandler {
     		@Override
     		public void run() {
     			try {
-    				while (true) {
-    					System.out.println("server received message");
-    					System.out.println("***************");
-    					KVMessage message = new KVMessage(client);
-    					KVMessage response;
-    					System.out.println("***************");
-    					
-    					String msgType = message.getMsgType();
-    					System.out.println(msgType);
-    					if (msgType.equals(KVConstants.GET_REQ)) {
-    						System.out.println("get message");
-    						response = new KVMessage(RESP);
-    						response.setKey(message.getKey());
-    						response.setValue(message.getValue());
-    						response.sendMessage(client);
-    					} else if (msgType.equals(KVConstants.DEL_REQ)) {
-    						System.out.println("del message");
-    						server.del(message.getKey());
-    						response = new KVMessage(RESP, SUCCESS);
-    						response.setMessage(SUCCESS);
-                            response.sendMessage(client);
-    						
-    					} else if (msgType.equals(KVConstants.PUT_REQ)) {
-    						System.out.println("put message");
-    						server.put(message.getKey(), message.getValue());
-    						response = new KVMessage(RESP, SUCCESS);
-//    						response.setMessage(SUCCESS);
-                            response.sendMessage(client);
-    					} 
-    					
-    				}
+    				System.out.println("server received message");
+    				System.out.println("***************");
+    				KVMessage message = new KVMessage(client);
+    				KVMessage response;
+    				System.out.println("***************");
+
+    				String msgType = message.getMsgType();
+    				System.out.println(msgType);
+    				if (msgType.equals(KVConstants.GET_REQ)) {
+    					System.out.println("get message");
+    					response = new KVMessage(RESP);
+    					response.setKey(message.getKey());
+    					response.setValue(server.get(message.getKey()));
+    					response.sendMessage(client);
+    				} else if (msgType.equals(KVConstants.DEL_REQ)) {
+    					System.out.println("del message");
+    					server.del(message.getKey());
+    					response = new KVMessage(RESP, SUCCESS);
+    					response.sendMessage(client);
+
+    				} else if (msgType.equals(KVConstants.PUT_REQ)) {
+    					System.out.println("put message");
+    					server.put(message.getKey(), message.getValue());
+    					response = new KVMessage(RESP, SUCCESS);
+    					response.sendMessage(client);
+    				} 
     			} catch (KVException e) {
     				try {
     					e.getKVMessage().sendMessage(client);
