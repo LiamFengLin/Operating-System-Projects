@@ -95,6 +95,7 @@ public class KVMessage implements Serializable {
 				this.key = kvMessage.getKey();
 				this.value = kvMessage.getValue();
 				this.msgType = kvMessage.getType();
+				this.message = kvMessage.getMessage();
     		}
 		} catch (Exception e) {
 			throw new KVException(ERROR_INVALID_FORMAT);
@@ -131,6 +132,7 @@ public class KVMessage implements Serializable {
         xmlStore.setKey(this.key);
         xmlStore.setValue(this.value);
         xmlStore.setType(this.msgType);
+        xmlStore.setMessage(this.message);
         return factory.createKVMessage(xmlStore);
     }
 
