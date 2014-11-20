@@ -56,13 +56,32 @@ public class ServerClientHandler implements NetworkHandler {
     		public void run() {
     			try {
     				while (true) {
+    					System.out.println("server received message");
+    					System.out.println("***************");
     					KVMessage message = new KVMessage(client);
-    					if (message.getMsgType() == KVConstants.GET_REQ) {
-    						message.sendMessage(client);
-    					} else if (message.getMsgType() == KVConstants.DEL_REQ) {
+    					KVMessage response;
+    					
+    					
+    					
+    					System.out.println("***************");
+    					
+    					String msgType = message.getMsgType();
+    					System.out.println(msgType);
+    					if (msgType == KVConstants.GET_REQ) {
+    						response = new KVMessage(RESP);
+    						response.setKey(message.getKey());
+    						response.setValue(message.getValue());
+    						response.sendMessage(client);
+    					} else if (msgType == KVConstants.DEL_REQ) {
     						server.del(message.getKey());
-    					} else if (message.getMsgType() == KVConstants.PUT_REQ) {
+    						response = new KVMessage(SUCCESS);
+                            response.sendMessage(client);
+    						
+    					} else if (msgType == KVConstants.PUT_REQ) {
+    						System.out.println("put message");
     						server.put(message.getKey(), message.getValue());
+    						response = new KVMessage(SUCCESS);
+                            response.sendMessage(client);
     					} 
     					
     				}
