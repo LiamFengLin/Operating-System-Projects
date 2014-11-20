@@ -48,9 +48,9 @@ public class ServerClientHandler implements NetworkHandler {
      * @param client Socket connected to the client with the request
      */
     @Override
-    public void handle(Socket client) {
+    public void handle(final Socket client) {
         // implement me
-    	KVServer server =this.kvServer;
+    	final KVServer server = this.kvServer;
     	Thread handlerThread = new Thread() {
     		@Override
     		public void run() {

@@ -23,7 +23,7 @@ public class EndToEndTest extends EndToEndTemplate {
     @AGTestDetails(points = 1, desc = "Single put request")
 	public void onePutRequest() {
 		try {
-			client.put("testKey", "testValue");
+			this.client.put("testKey", "testValue");
 		} catch (KVException e) {
 			throw new RuntimeException((Exception)e);
 		}
