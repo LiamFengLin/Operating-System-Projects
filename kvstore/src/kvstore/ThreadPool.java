@@ -23,8 +23,9 @@ public class ThreadPool {
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
         try {
-        	this.addJob(new WorkerThread(this));
         	this.getJob().run();
+        	this.addJob(new WorkerThread(this));
+        	
         } catch (InterruptedException e) {
         	System.out.println(e.toString());
         }
