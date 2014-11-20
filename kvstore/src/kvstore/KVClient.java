@@ -154,6 +154,9 @@ public class KVClient implements KeyValueInterface {
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
     	String returnMessage = kvReturnMessage.getMessage();
+    	if (returnMessage == null) {
+    		throw new KVException(KVConstants.ERROR_PARSER);
+    	}
         if (!returnMessage.equals(KVConstants.SUCCESS)){
         	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
         }

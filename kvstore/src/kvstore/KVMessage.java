@@ -4,6 +4,7 @@ import static kvstore.KVConstants.*;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import javax.xml.bind.JAXBContext;
@@ -89,7 +90,7 @@ public class KVMessage implements Serializable {
     	// call kv message constructor
     	try {
     		if (timeout == 0) {
-				InputStream is = new NoCloseInputStream(sock.getInputStream());
+				InputStream is = sock.getInputStream();
 				
 				KVMessageType kvMessage = unmarshal(is);
 				this.key = kvMessage.getKey();
@@ -97,10 +98,16 @@ public class KVMessage implements Serializable {
 				this.msgType = kvMessage.getType();
 				this.message = kvMessage.getMessage();
     		}
-		} catch (Exception e) {
-			throw new KVException(ERROR_INVALID_FORMAT);
+    	} catch (SocketException e) {
+    		throw new KVException(ERROR_COULD_NOT_RECEIVE_DATA);
+		} catch (IOException e) {
+			throw new KVException(ERROR_COULD_NOT_RECEIVE_DATA);
+		} catch (JAXBException e) {
+			if (e.getCause().getClass().equals(IOException.class)) {
+				throw new KVException(ERROR_COULD_NOT_RECEIVE_DATA);
+			}
+			throw new KVException(KVConstants.ERROR_PARSER);
 		}
-    	
     }
 
     /**

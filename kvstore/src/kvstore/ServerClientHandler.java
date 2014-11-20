@@ -51,7 +51,7 @@ public class ServerClientHandler implements NetworkHandler {
     public void handle(final Socket client) {
         // implement me
     	final KVServer server = this.kvServer;
-    	Thread handlerThread = new Thread() {
+    	Runnable handlerThread = new Runnable() {
     		@Override
     		public void run() {
     			try {

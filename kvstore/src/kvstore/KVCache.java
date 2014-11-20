@@ -193,7 +193,16 @@ public class KVCache implements KeyValueInterface {
 		if (setNum < 0) {
 			setNum += this.numSets;
 		}
-		return this.locks[setNum];
+		LinkedList<String[]> keySet = this.sets[setNum];
+		ListIterator<String[]> listIterator = keySet.listIterator();
+		String[] mapTemp;
+        while (listIterator.hasNext()) {
+            mapTemp = listIterator.next();
+            if (mapTemp[0].equals(key)) {
+            	return this.locks[setNum];
+            }
+        }
+        return null;
 	}
 
 	/**

@@ -26,7 +26,6 @@ public class ThreadPool {
         this.notEmpty = queueLock.newCondition();
         threads[0] = new WorkerThread(this);
         threads[0].start();
-        // implement me
     }
 
     /**
@@ -87,18 +86,22 @@ public class ThreadPool {
         @Override
         public void run() {
         	try {
-        		Thread t;
+        		Runnable r;
+        		int empty = -1;
         		boolean flag;
         		while (true) {
-            		t = (Thread) threadPool.getJob();
+            		r = threadPool.getJob();
             		flag = false;
+            		
             		for (int i = 0; i < threadPool.maxSize; i++) {
                     	if (threadPool.threads[i] == null || !threadPool.threads[i].isAlive()) {
-                    		threadPool.threads[i] = t;
+                    		empty = i;
                     		flag = true;
                     	}
                     }
-            		if (flag) {
+            		if (flag && empty != -1) {
+            			Thread t = new Thread(r);
+            			threadPool.threads[empty] = t;
             			t.start();
             		}
             		

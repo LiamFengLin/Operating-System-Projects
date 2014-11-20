@@ -43,17 +43,30 @@ public class KVServer implements KeyValueInterface {
     public void put(String key, String value) throws KVException {
         // implement me
         // update cache and store
-    	if (key.length() > MAX_KEY_SIZE) {
-    		throw new KVException(ERROR_OVERSIZED_KEY);
+    	Lock lock = null;
+    	try {
+    		if (key.length() > MAX_KEY_SIZE) {
+        		throw new KVException(ERROR_OVERSIZED_KEY);
+        	}
+        	if (value.length() > MAX_VAL_SIZE) {
+        		throw new KVException(ERROR_OVERSIZED_VALUE);
+        	}
+        	lock = this.dataCache.getLock(key);
+        	if (lock != null){
+            	lock.lock();
+            }
+        	this.dataCache.put(key, value);
+        	this.dataStore.put(key, value);
+        	if (lock != null){
+            	lock.unlock();
+            }
+    	} catch (Exception e) {
+    		if (lock != null){
+            	lock.unlock();
+            }
+    		throw e;
     	}
-    	if (value.length() > MAX_VAL_SIZE) {
-    		throw new KVException(ERROR_OVERSIZED_VALUE);
-    	}
-    	Lock lock = this.dataCache.getLock(key);
-    	lock.lock();
-    	this.dataCache.put(key, value);
-    	this.dataStore.put(key, value);
-    	lock.unlock();
+    	
     }
 
     /**
@@ -68,14 +81,27 @@ public class KVServer implements KeyValueInterface {
     public String get(String key) throws KVException {
         // implement me
     	// get cache first; if not get from store
-    	Lock lock = this.dataCache.getLock(key);
-    	lock.lock();
-        String val = this.dataCache.get(key);
-        if(val == null) {
-        	val = this.dataStore.get(key);
-        }
-        lock.unlock();
-    	return val;
+    	Lock lock = null;
+    	try {
+    		lock = this.dataCache.getLock(key);
+        	if (lock != null){
+            	lock.lock();
+            }
+            String val = this.dataCache.get(key);
+            if(val == null) {
+            	val = this.dataStore.get(key);
+            }
+            if (lock != null){
+            	lock.unlock();
+            }
+        	return val;
+    	} catch (Exception e) {
+    		if (lock != null){
+            	lock.unlock();
+            }
+    		throw e;
+    	}
+    	
     }
 
     /**
@@ -86,11 +112,25 @@ public class KVServer implements KeyValueInterface {
      */
     @Override
     public void del(String key) throws KVException {
-    	Lock lock = this.dataCache.getLock(key);
-    	lock.lock();
-        this.dataCache.del(key);
-        this.dataStore.del(key);
-        lock.unlock();
+    	Lock lock = null;
+    	try{
+    		lock = this.dataCache.getLock(key);
+        	if (lock != null){
+        		lock.lock();
+        	}
+        	
+            this.dataCache.del(key);
+            this.dataStore.del(key);
+            if (lock != null){
+            	lock.unlock();
+            }
+    	} catch (Exception e) {
+    		if (lock != null){
+            	lock.unlock();
+            }
+    		throw e;
+    	}
+    	
     }
 
     /**

@@ -68,6 +68,7 @@ public class SocketServer {
     	try {
     		if (this.getPort() == 0) {
             	this.server = new ServerSocket();
+            	this.port = this.server.getLocalPort();
             } else {
             	this.server = new ServerSocket(this.port);
             }
@@ -92,15 +93,13 @@ public class SocketServer {
     		Socket clientSocket;
     		while (true) {
     			try {
+    				if (stopped == true) {
+    					break;
+    				}
     				clientSocket = this.server.accept();
     				System.out.println("socket created");
     				this.handler.handle(clientSocket);
-    				if (stopped == true) {
-    					clientSocket.getOutputStream().close();
-    					clientSocket.getInputStream().close();
-    					clientSocket.close();
-    					break;
-    				}
+    				
 
     				Thread.sleep(TIMEOUT);
     			} catch (SocketTimeoutException s) {
