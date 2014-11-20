@@ -22,14 +22,8 @@ public class ThreadPool {
         this.threadQueue = new LinkedList<Runnable>();
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
-        try {
-        	this.getJob().run();
-        	this.addJob(new WorkerThread(this));
-        	
-        } catch (InterruptedException e) {
-        	System.out.println(e.toString());
-        }
-        
+        threads[0] = new WorkerThread(this);
+        threads[0].run();
         // implement me
     }
 
