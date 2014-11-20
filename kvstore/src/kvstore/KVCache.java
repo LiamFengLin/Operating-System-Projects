@@ -209,7 +209,7 @@ public class KVCache implements KeyValueInterface {
 		LinkedList<String[]> keySet;
 		KVCacheEntry entry;
 		KVSetType setType;
-		for (int i = 0; i < this.maxElemsPerSet; i++) {
+		for (int i = 0; i < this.numSets; i++) {
 			setType = factory.createKVSetType();
 			setType.setId(String.valueOf(i));
 			keySet = this.sets[i];
