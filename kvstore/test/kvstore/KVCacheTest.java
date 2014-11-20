@@ -197,7 +197,7 @@ public class KVCacheTest {
         assertEquals(cache.getCacheSetSize(2), 0);
     }
 
-    @Test(timeout = kTimeoutQuick)
+    @Test()
     @Category(AG_PROJ3_CODE.class)
     @AGTestDetails(points = 1, desc = "")
     public void multipleSetsTooManyPuts() {

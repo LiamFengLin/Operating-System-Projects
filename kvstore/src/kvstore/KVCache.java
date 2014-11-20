@@ -74,7 +74,7 @@ public class KVCache implements KeyValueInterface {
 		String[] mapTemp;
         while (listIterator.hasNext()) {
             mapTemp = listIterator.next();
-            if (mapTemp[0] == key) {
+            if (mapTemp[0].equals(key)) {
             	mapTemp[2] = "true";
             	return mapTemp[1];
             }
@@ -108,16 +108,26 @@ public class KVCache implements KeyValueInterface {
 		}
 //		System.out.println(setNum);
 		LinkedList<String[]> keySet = this.sets[setNum];
+		ListIterator<String[]> listIterator = keySet.listIterator();
+		String[] mapTemp;
+		while (listIterator.hasNext()) {
+            mapTemp = listIterator.next();
+            if (mapTemp[0].equals(key)) {
+            	mapTemp[1] = value;
+            	mapTemp[2] = "true";
+            	return;
+            }
+        }
+		
 		if (keySet.size() < this.maxElemsPerSet) {
 			String[] entry = {key, value, "false"};
 			keySet.add(entry);
 			return;
 		}
-		ListIterator<String[]> listIterator = keySet.listIterator();
-		String[] mapTemp;
+		listIterator = keySet.listIterator();
         while (listIterator.hasNext()) {
             mapTemp = listIterator.next();
-            if (mapTemp[2] == "false") {
+            if (mapTemp[2].equals("false")) {
             	mapTemp[0] = key;
             	mapTemp[1] = value;
             	mapTemp[2] = "true";
@@ -129,7 +139,7 @@ public class KVCache implements KeyValueInterface {
         listIterator = keySet.listIterator();
         while (listIterator.hasNext()) {
             mapTemp = listIterator.next();
-            if (mapTemp[2] == "false") {
+            if (mapTemp[2].equals("false")) {
             	mapTemp[0] = key;
             	mapTemp[1] = value;
             	mapTemp[2] = "true";
@@ -156,7 +166,7 @@ public class KVCache implements KeyValueInterface {
 		int i = 0;
         while (listIterator.hasNext()) {
             mapTemp = listIterator.next();
-            if (mapTemp[0] == key) {
+            if (mapTemp[0].equals(key)) {
             	keySet.remove(i);
             	return;
             }
