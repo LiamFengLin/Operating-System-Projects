@@ -19,8 +19,8 @@ public class ThreadPool {
      * @param size number of threads in the thread pool
      */
     public ThreadPool(int size) {
-        threads = new Thread[size];
-        this.maxSize = size;
+        threads = new Thread[size+1];
+        this.maxSize = size+1;
         this.threadQueue = new LinkedList<Runnable>();
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
@@ -93,17 +93,21 @@ public class ThreadPool {
             		r = threadPool.getJob();
             		flag = false;
             		
-            		for (int i = 0; i < threadPool.maxSize; i++) {
-                    	if (threadPool.threads[i] == null || !threadPool.threads[i].isAlive()) {
-                    		empty = i;
-                    		flag = true;
-                    	}
-                    }
-            		if (flag && empty != -1) {
-            			Thread t = new Thread(r);
-            			threadPool.threads[empty] = t;
-            			t.start();
+            		while (true) {
+            			for (int i = 0; i < threadPool.maxSize; i++) {
+                        	if (threadPool.threads[i] == null || !threadPool.threads[i].isAlive()) {
+                        		empty = i;
+                        		flag = true;
+                        	}
+                        }
+                		if (flag && empty != -1) {
+                			Thread t = new Thread(r);
+                			threadPool.threads[empty] = t;
+                			t.start();
+                			break;
+                		}
             		}
+            		
             		
             	}
             	

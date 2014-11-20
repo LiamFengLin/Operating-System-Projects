@@ -97,7 +97,6 @@ public class SocketServer {
     					break;
     				}
     				clientSocket = this.server.accept();
-    				System.out.println("socket created");
     				this.handler.handle(clientSocket);
     				
 

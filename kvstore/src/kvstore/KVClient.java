@@ -84,8 +84,6 @@ public class KVClient implements KeyValueInterface {
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
         String returnMessage = kvReturnMessage.getMessage();
-        System.out.println(kvReturnMessage.getMsgType());
-        System.out.println(returnMessage);
         if (!returnMessage.equals(KVConstants.SUCCESS)){
         	throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
         }
@@ -106,22 +104,13 @@ public class KVClient implements KeyValueInterface {
         // implement me
     	// kv message
     	this.lock.lock();
-    	System.out.println("started get function");
     	KVMessage kvMessage = new KVMessage(GET_REQ);
-    	System.out.println("1");
     	kvMessage.setKey(key);
-    	System.out.println("2");
     	Socket sock = connectHost();
-    	System.out.println("3");
     	kvMessage.sendMessage(sock);
-    	System.out.println("4");
     	
     	KVMessage kvReturnMessage = new KVMessage(sock);
-    	System.out.println("5");
     	String returnVal = kvReturnMessage.getValue();
-    	System.out.println("&&&&&&&&&&&&&&");
-    	System.out.println(returnVal);
-    	System.out.println("&&&&&&&&&&&&&&");
     	
     	String returnMessage = kvReturnMessage.getMessage();
     	if (returnMessage != null && returnMessage.equals(KVConstants.ERROR_NO_SUCH_KEY)){

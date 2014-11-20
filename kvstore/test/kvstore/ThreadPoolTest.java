@@ -77,10 +77,6 @@ public class ThreadPoolTest {
         threadPool.addJob(r);
         threadPool.addJob(r);
         Thread.sleep(200);
-        System.out.println("===============");
-        System.out.println(array[0]);
-        System.out.println(array[1]);
-        System.out.println("===============");
         assertTrue("A thread didn't increment the correct array entry", array[0] == 0);
         assertTrue("A thread didn't increment the correct array entry", array[1] == 1);
     }

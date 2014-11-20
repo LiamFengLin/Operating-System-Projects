@@ -23,11 +23,8 @@ public class EndToEndTest extends EndToEndTemplate {
     @AGTestDetails(points = 1, desc = "Single put request")
 	public void onePutRequest() {
 		try {
-			System.out.println("===============");
 			this.client.put("testKey", "testValue");
-			System.out.println("===============");
 			System.out.println(this.client.get("testKey"));
-			System.out.println("===============");
 			
 			
 		} catch (Exception e) {
