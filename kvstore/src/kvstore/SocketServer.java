@@ -71,7 +71,6 @@ public class SocketServer {
             } else {
             	this.server = new ServerSocket(this.port);
             }
-    		this.start();
     	} catch (IOException e) {
     		throw new IOException();
     	}
