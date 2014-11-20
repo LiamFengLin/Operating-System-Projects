@@ -44,10 +44,10 @@ public class KVServer implements KeyValueInterface {
         // implement me
         // update cache and store
     	if (key.length() > MAX_KEY_SIZE) {
-    		throw new KVException(KVConstants.ERROR_OVERSIZED_KEY);
+    		throw new KVException(ERROR_OVERSIZED_KEY);
     	}
     	if (value.length() > MAX_VAL_SIZE) {
-    		throw new KVException(KVConstants.ERROR_OVERSIZED_VALUE);
+    		throw new KVException(ERROR_OVERSIZED_VALUE);
     	}
     	Lock lock = this.dataCache.getLock(key);
     	lock.lock();

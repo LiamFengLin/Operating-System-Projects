@@ -45,7 +45,7 @@ public class KVClient implements KeyValueInterface {
         	Socket socket = new Socket(server, port);
         	return socket;
         } catch (Exception e) {
-        	throw new KVException(KVConstants.ERROR_COULD_NOT_CONNECT);
+        	throw new KVException(ERROR_COULD_NOT_CONNECT);
         }
     }
 
@@ -72,7 +72,7 @@ public class KVClient implements KeyValueInterface {
     public void put(String key, String value) throws KVException {
         // implement me
     	// kv message
-    	KVMessage kvMessage = new KVMessage(KVConstants.PUT_REQ);
+    	KVMessage kvMessage = new KVMessage(PUT_REQ);
     	kvMessage.setKey(key);
     	kvMessage.setValue(value);
     	Socket sock = connectHost();

@@ -88,12 +88,14 @@ public class KVMessage implements Serializable {
     	// get from sock
     	// call kv message constructor
     	try {
-			InputStream is = sock.getInputStream();
-			KVMessageType kvMessage = unmarshal(is);
-			setKey(kvMessage.getKey());
-			setValue(kvMessage.getValue());
+    		if (timeout == 0) {
+				InputStream is = sock.getInputStream();
+				KVMessageType kvMessage = unmarshal(is);
+				setKey(kvMessage.getKey());
+				setValue(kvMessage.getValue());
+    		}
 		} catch (Exception e) {
-			throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+			throw new KVException(ERROR_INVALID_FORMAT);
 		}
     	
     }
@@ -105,9 +107,10 @@ public class KVMessage implements Serializable {
      */
     public KVMessage(KVMessage kvm) {
         // implement me
-    	setKey(kvm.getKey());
-    	setValue(kvm.getValue());
-    	setMessage(kvm.getMessage());
+    	this.key = kvm.getKey();
+    	this.value = kvm.getValue();
+    	this.message = kvm.getMessage();
+    	this.msgType = kvm.getMsgType();
     }
 
     
@@ -201,10 +204,12 @@ public class KVMessage implements Serializable {
 			sock.shutdownOutput();
 			// eof
 		} catch (IOException e) {
-			throw new KVException(KVConstants.ERROR_COULD_NOT_SEND_DATA);
+			throw new KVException(ERROR_COULD_NOT_SEND_DATA);
 		} catch (JAXBException e) {
-			throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
-		}
+			throw new KVException(ERROR_PARSER);
+		} catch (KVException e) {
+            throw new KVException(ERROR_INVALID_FORMAT);
+        }
     }
 
     public String getKey() {
