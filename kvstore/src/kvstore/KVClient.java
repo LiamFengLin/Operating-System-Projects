@@ -42,7 +42,7 @@ public class KVClient implements KeyValueInterface {
     public Socket connectHost() throws KVException {
         // implement me
         try {
-        	Socket socket = new Socket(server, port);
+        	Socket socket = new Socket(this.server, this.port);
         	return socket;
         } catch (Exception e) {
         	throw new KVException(ERROR_COULD_NOT_CONNECT);
