@@ -69,8 +69,9 @@ public class SocketServer {
     		if (this.getPort() == 0) {
             	this.server = new ServerSocket();
             } else {
-            	this.server = new ServerSocket(this.getPort());
+            	this.server = new ServerSocket(this.port);
             }
+    		this.start();
     	} catch (IOException e) {
     		throw new IOException();
     	}
