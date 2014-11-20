@@ -11,6 +11,7 @@ public class ThreadPool {
     public LinkedList<Runnable> threadQueue;
     public Lock queueLock;
     public Condition notEmpty;
+    public int maxSize;
 
     /**
      * Constructs a Threadpool with a certain number of threads.
@@ -19,6 +20,7 @@ public class ThreadPool {
      */
     public ThreadPool(int size) {
         threads = new Thread[size];
+        this.maxSize = size;
         this.threadQueue = new LinkedList<Runnable>();
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
@@ -85,8 +87,21 @@ public class ThreadPool {
         @Override
         public void run() {
         	try {
+        		Thread t;
+        		boolean flag;
         		while (true) {
-            		threadPool.getJob().run();
+            		t = (Thread) threadPool.getJob();
+            		flag = false;
+            		for (int i = 0; i < threadPool.maxSize; i++) {
+                    	if (threadPool.threads[i] == null || !threadPool.threads[i].isAlive()) {
+                    		threadPool.threads[i] = t;
+                    		flag = true;
+                    	}
+                    }
+            		if (flag) {
+            			t.run();
+            		}
+            		
             	}
             	
         	} catch (InterruptedException e) {
