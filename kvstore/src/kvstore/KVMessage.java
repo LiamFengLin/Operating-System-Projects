@@ -91,8 +91,9 @@ public class KVMessage implements Serializable {
     		if (timeout == 0) {
 				InputStream is = sock.getInputStream();
 				KVMessageType kvMessage = unmarshal(is);
-				setKey(kvMessage.getKey());
-				setValue(kvMessage.getValue());
+				this.key = kvMessage.getKey();
+				this.value = kvMessage.getValue();
+				this.msgType = kvMessage.getType();
     		}
 		} catch (Exception e) {
 			throw new KVException(ERROR_INVALID_FORMAT);
