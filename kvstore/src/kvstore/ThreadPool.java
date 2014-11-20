@@ -25,7 +25,7 @@ public class ThreadPool {
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
         threads[0] = new WorkerThread(this);
-        threads[0].run();
+        threads[0].start();
         // implement me
     }
 
