@@ -94,6 +94,7 @@ public class SocketServer {
     		while (true) {
     			try {
     				if (stopped == true) {
+    					this.server.close();
     					break;
     				}
     				clientSocket = this.server.accept();
@@ -103,6 +104,7 @@ public class SocketServer {
     				Thread.sleep(TIMEOUT);
     			} catch (SocketTimeoutException s) {
     				if (stopped == true) {
+    					this.server.close();
     					break;
     				}
     				continue;
