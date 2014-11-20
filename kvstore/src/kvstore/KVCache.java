@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -13,6 +14,8 @@ import kvstore.xml.KVCacheEntry;
 import kvstore.xml.KVCacheType;
 import kvstore.xml.KVSetType;
 import kvstore.xml.ObjectFactory;
+
+import java.util.*;
 
 /**
  * A set-associate cache which has a fixed maximum number of sets (numSets).
@@ -30,10 +33,24 @@ public class KVCache implements KeyValueInterface {
 	 * @param maxElemsPerSet
 	 *            the size of each set
 	 */
+	
+	public int numSets;
+	public int maxElemsPerSet;
+	public LinkedList<String[]>[] sets;
+	public Lock[] locks;
+	
+	
 	@SuppressWarnings("unchecked")
 	public KVCache(int numSets, int maxElemsPerSet) {
 		// implement me
 		// arrayList; linkedlist
+		this.numSets = numSets;
+		this.maxElemsPerSet = maxElemsPerSet;
+		this.sets = new LinkedList[numSets];
+		for (int i = 0; i < numSets; i++) {
+			this.sets[i] = new LinkedList<String[]>();
+			this.locks[i] = new ReentrantLock();
+		}
 	}
 
 	/**
@@ -47,7 +64,17 @@ public class KVCache implements KeyValueInterface {
 	 */
 	@Override
 	public String get(String key) {
-		// implement me
+		int setNum = key.hashCode() % this.numSets;
+		LinkedList<String[]> keySet = this.sets[setNum];
+		ListIterator<String[]> listIterator = keySet.listIterator();
+		String[] mapTemp;
+        while (listIterator.hasNext()) {
+            mapTemp = listIterator.next();
+            if (mapTemp[0] == key) {
+            	mapTemp[2] = "true";
+            	return mapTemp[1];
+            }
+        }
 		return null;
 	}
 
@@ -71,8 +98,36 @@ public class KVCache implements KeyValueInterface {
 	@Override
 	public void put(String key, String value) {
 		// implement me
-		// put in cache as well as server
-		// pass lock to server; lock for each set
+		int setNum = key.hashCode() % this.numSets;
+		LinkedList<String[]> keySet = this.sets[setNum];
+		if (keySet.size() < this.maxElemsPerSet) {
+			String[] entry = {key, value, "false"};
+			keySet.add(entry);
+			return;
+		}
+		ListIterator<String[]> listIterator = keySet.listIterator();
+		String[] mapTemp;
+        while (listIterator.hasNext()) {
+            mapTemp = listIterator.next();
+            if (mapTemp[2] == "false") {
+            	mapTemp[0] = key;
+            	mapTemp[1] = value;
+            	mapTemp[2] = "true";
+            	return;
+            } else {
+            	mapTemp[2] = "false";
+            }
+        }
+        listIterator = keySet.listIterator();
+        while (listIterator.hasNext()) {
+            mapTemp = listIterator.next();
+            if (mapTemp[2] == "false") {
+            	mapTemp[0] = key;
+            	mapTemp[1] = value;
+            	mapTemp[2] = "true";
+            	return;
+            }
+        }
 	}
 
 	/**
@@ -86,7 +141,20 @@ public class KVCache implements KeyValueInterface {
 	@Override
 	public void del(String key) {
 		// implement me
-	    // delete cache as well as server
+		int setNum = key.hashCode() % this.numSets;
+		LinkedList<String[]> keySet = this.sets[setNum];
+		ListIterator<String[]> listIterator = keySet.listIterator();
+		String[] mapTemp;
+		int i = 0;
+        while (listIterator.hasNext()) {
+            mapTemp = listIterator.next();
+            if (mapTemp[0] == key) {
+            	keySet.remove(i);
+            	return;
+            }
+            i++;
+        }
+		return;
 	}
 
 	/**
@@ -100,9 +168,8 @@ public class KVCache implements KeyValueInterface {
 	 */
 
 	public Lock getLock(String key) {
-		return null;
-		// implement me
-
+		int setNum = key.hashCode() % this.numSets;
+		return this.locks[setNum];
 	}
 
 	/**
@@ -114,7 +181,7 @@ public class KVCache implements KeyValueInterface {
 	 */
 	int getCacheSetSize(int cacheSet) {
 		// implement me
-		return -1;
+		return this.sets[cacheSet].size();
 	}
 
 	private void marshalTo(OutputStream os) throws JAXBException {
@@ -131,6 +198,25 @@ public class KVCache implements KeyValueInterface {
 		ObjectFactory factory = new ObjectFactory();
 		KVCacheType xmlCache = factory.createKVCacheType();
 		// implement me
+		LinkedList<String[]> keySet;
+		KVCacheEntry entry;
+		KVSetType setType;
+		for (int i = 0; i < this.maxElemsPerSet; i++) {
+			setType = factory.createKVSetType();
+			setType.setId(String.valueOf(i));
+			keySet = this.sets[i];
+			ListIterator<String[]> listIterator = keySet.listIterator();
+			String[] mapTemp;
+	        while (listIterator.hasNext()) {
+	            mapTemp = listIterator.next();
+	            entry = factory.createKVCacheEntry();
+	            entry.setKey(mapTemp[0]);
+	            entry.setValue(mapTemp[1]);
+	            entry.setIsReferenced(mapTemp[2]);
+	            setType.getCacheEntry().add(entry);
+	        }
+	        xmlCache.getSet().add(setType);
+		}
 		return factory.createKVCache(xmlCache);
 	}
 
@@ -143,7 +229,7 @@ public class KVCache implements KeyValueInterface {
 		try {
 			marshalTo(os);
 		} catch (JAXBException e) {
-			// e.printStackTrace();
+			 e.printStackTrace();
 		}
 		return os.toString();
 	}
