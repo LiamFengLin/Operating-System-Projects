@@ -36,7 +36,6 @@ public class TPCMasterTest {
 	public void setupMaster() throws KVException {
 		masterCache = new KVCache(5, 5);
 		master = new TPCMaster(4, masterCache);
-
 		slave1 = new TPCSlaveInfo(SLAVE1 + "@111.111.111.111:1");
 		slave2 = new TPCSlaveInfo(SLAVE2 + "@111.111.111.111:2");
 		slave3 = new TPCSlaveInfo(SLAVE3 + "@111.111.111.111:3");

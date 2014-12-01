@@ -15,7 +15,7 @@ public class TPCSlaveInfo {
     public String hostname;
     public int port;
     
-    private static final Pattern INFO_STRING_PAT = Pattern.compile("(\\d++)@(\\w++\\.\\w++):(\\d++)");
+    private static final Pattern INFO_STRING_PAT = Pattern.compile("(-?\\d++)@(\\w++\\.\\w++\\.\\w++\\.\\w++):(\\d++)");
 
     /**
      * Construct a TPCSlaveInfo to represent a slave server.
@@ -27,9 +27,13 @@ public class TPCSlaveInfo {
         // implement me
     	// check that it is the correct format
     	Matcher matchedInfo = INFO_STRING_PAT.matcher(info);
-    	String slaveId = matchedInfo.group(1);
-    	String hostname = matchedInfo.group(2);
-    	String port = matchedInfo.group(3);
+    	String slaveId = "";
+    	String hostname = "";
+    	String port = "";
+    	matchedInfo.find();
+    	slaveId = matchedInfo.group(1);
+    	hostname = matchedInfo.group(2);
+    	port = matchedInfo.group(3);
     	if (slaveId == null || hostname == null || port == null){
     		throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
     	}

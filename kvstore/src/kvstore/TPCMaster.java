@@ -152,7 +152,11 @@ public class TPCMaster {
     	// return nexReplicaIndex
     	for(int i = 0; i < numSlaves; i ++){
     		if(slaveArray[i].slaveID == firstReplica.slaveID){
-    			return slaveArray[(i+1)%numSlaves];
+    			int index = (i+1)%numSlaves;
+    			if (index < 0) {
+    				index += numSlaves;
+    			}
+    			return slaveArray[index];
     		}
     	}
     	return null;
