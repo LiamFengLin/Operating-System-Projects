@@ -61,11 +61,11 @@ public class TPCClientHandler implements NetworkHandler {
 					}else if (msgType.equals(KVConstants.DEL_REQ)) {
 						tpcMaster.handleTPCRequest(message, false);;
 						response = new KVMessage(RESP, SUCCESS);
-						response.sendMessage(client);
+						response.sendMessage(f_socket);
 					}else if (msgType.equals(KVConstants.PUT_REQ)) {
 						tpcMaster.handleTPCRequest(message, true);;
 						response = new KVMessage(RESP, SUCCESS);
-						response.sendMessage(client);
+						response.sendMessage(f_socket);
 					}
 				} catch (KVException e) {
 					try {
