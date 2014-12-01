@@ -5,6 +5,7 @@ import static kvstore.KVConstants.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TPCMaster {
 
@@ -14,9 +15,11 @@ public class TPCMaster {
     public static final int TIMEOUT = 3000;
     
     // slave id array
+    public TPCSlaveInfo[]  slaveArray;
     // lock
     private static final int MAX_KEY_SIZE = 256;
     private static final int MAX_VAL_SIZE = 256 * 1024;
+    public Lock writeLock;
 
     /**
      * Creates TPCMaster, expecting numSlaves slave servers to eventually register
@@ -28,8 +31,13 @@ public class TPCMaster {
         this.numSlaves = numSlaves;
         this.masterCache = cache;
         // implement me
+        this.slaveArray = new TPCSlaveInfo[numSlaves];
+        for(int i = 0; i < numSlaves; i++){
+        	slaveArray[i] = null;
+        }
         // set up slave id array
         // set up lock 
+        this.writeLock = new ReentrantLock();
     }
 
     /**
@@ -42,7 +50,18 @@ public class TPCMaster {
     public void registerSlave(TPCSlaveInfo slave) {
         // implement me
     	// check if already registered
+    	for(int i = 0; i < numSlaves; i++){
+    		if(slaveArray[i].slaveID == slave.slaveID){
+    			slaveArray[i] = slave;
+    			return;
+    		}
+    	}
     	// slave all fields saved to an array; add to slave array;
+    	for(int i = 0; i < numSlaves; i++){
+    		if(slaveArray[i] == null){
+    			slaveArray[i] = slave;
+    		}
+    	}
     }
 
     /**
@@ -97,7 +116,27 @@ public class TPCMaster {
     	// keySpaceSize for each slave = 2^64 / numSlaves
     	// slaveIndex = hashcode(64 bits) / keySpaceSize
     	// return slaveArray[slaveIndex]
-        return null;
+    	long smallestGreater = 0;
+    	int resultIndex = -1;
+    	long hashValue = hashTo64bit(key);
+    	for(int i = 0; i < numSlaves; i++){
+    		if(isLessThanEqualUnsigned(hashValue,slaveArray[i].slaveID)){
+    			if(isLessThanUnsigned(slaveArray[i].slaveID, smallestGreater)){
+    				smallestGreater = slaveArray[i].slaveID;
+    				resultIndex = i;
+    			}
+    		}
+    	}
+    	long smallestId = Long.MAX_VALUE;
+    	if(resultIndex == -1){
+    		for(int i = 0; i < numSlaves; i ++){
+    			if(slaveArray[i].slaveID < smallestId){
+    				smallestId = slaveArray[i].slaveID;
+    				resultIndex = i;
+    			}
+    		}
+    	}
+        return slaveArray[resultIndex];
     }
 
     /**
@@ -111,7 +150,12 @@ public class TPCMaster {
     	// iterate through slave array; firstReplicaIndex = find index of firstReplica
     	// nextReplicaIndex = (firstReplicaIndex + 1) % numSlaves
     	// return nexReplicaIndex
-        return null;
+    	for(int i = 0; i < numSlaves; i ++){
+    		if(slaveArray[i].slaveID == firstReplica.slaveID){
+    			return slaveArray[(i+1)%numSlaves];
+    		}
+    	}
+    	return null;
     }
 
     /**
@@ -120,7 +164,13 @@ public class TPCMaster {
     public int getNumRegisteredSlaves() {
         // implement me
     	// size of array
-        return -1;
+    	int count = 0;
+    	for(int i = 0; i < numSlaves; i++){
+    		if(slaveArray[i] != null){
+    			count ++;
+    		}
+    	}
+        return count;
     }
 
     /**
@@ -130,6 +180,11 @@ public class TPCMaster {
     public TPCSlaveInfo getSlave(long slaveId) {
         // implement me
     	// iterate through the slave array; compare each ID and find corresponding slaveId
+        for(int i = 0; i < numSlaves; i++){
+        	if(slaveArray[i].slaveID == slaveId){
+        		return slaveArray[i];
+        	}
+        }
         return null;
     }
 
