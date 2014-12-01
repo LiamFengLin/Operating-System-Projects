@@ -150,37 +150,6 @@ public class KVMessageTest {
     @Test(timeout = kTimeoutQuick)
     @Category(AG_PROJ3_CODE.class)
     @AGTestDetails(points = 2,
-        desc = "IOException on socket read results in ERROR_COULD_NOT_RECEIVE_DATA")
-    public void handlesReadErrorNeatly() throws IOException {
-        sock = mock(Socket.class);
-        stream = mock(InputStream.class);
-        // set up socket
-        doNothing().when(sock).setSoTimeout(anyInt());
-        when(sock.getInputStream()).thenReturn(stream);
-
-        // set up stream. BufferedInputReaders use this read call, but maybe not all?!
-        when(stream.read((byte[]) anyObject(), anyInt(), anyInt())).thenThrow(new IOException());
-
-        // just in case student code is different than ours.
-        when(stream.read()).thenThrow(new IOException());
-        when(stream.read((byte[]) anyObject())).thenThrow(new IOException());
-        try {
-            @SuppressWarnings("unused")
-            KVMessage kvm = new KVMessage(sock);
-            fail("After read failure, expect error message!");
-        } catch (KVException e) {
-            KVMessage failure = e.getKVMessage();
-            assertEquals(RESP, failure.getMsgType());
-            // TODO decide if we care what the following error message is. Most recent spec didn't specify.
-            assertEquals(ERROR_COULD_NOT_RECEIVE_DATA, failure.getMessage());
-            assertNull(failure.getKey());
-            assertNull(failure.getValue());
-        }
-    }
-
-    @Test(timeout = kTimeoutQuick)
-    @Category(AG_PROJ3_CODE.class)
-    @AGTestDetails(points = 2,
         desc = "Non XML in socket results in ERROR_PARSER or ERROR_INVALID_FORMAT")
     public void handlesNotXML() {
         sock = Utils.setupReadFromFile("garbage.txt");

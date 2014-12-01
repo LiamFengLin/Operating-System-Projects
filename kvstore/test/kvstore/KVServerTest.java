@@ -1,6 +1,7 @@
 package kvstore;
 
-import static autograder.TestUtils.*;
+import static autograder.TestUtils.kTimeoutDefault;
+import static autograder.TestUtils.kTimeoutQuick;
 import static kvstore.KVConstants.*;
 import static kvstore.Utils.assertKVExceptionEquals;
 import static org.junit.Assert.*;
@@ -8,11 +9,16 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.junit.*;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -69,7 +75,7 @@ public class KVServerTest {
         }
     }
 
-    @Test(timeout = kTimeoutDefault)
+    @Test(timeout = 30000)
     @Category(AG_PROJ4_CODE.class)
     @AGTestDetails(points = 3, desc = "Randomized put/get/del sequence test.")
     public void randStressTest() throws KVException {
@@ -104,15 +110,15 @@ public class KVServerTest {
         setupMockServer();
         Scanner s2 = null;
         try {
-            File maxKeyFile = new File(getClass().getClassLoader().getResource("gobears_maxkey.txt").getPath());
-            s2 = new Scanner(maxKeyFile);
+            final String filename = "gobears_maxkey.txt";
+            InputStream maxKeyStream = getClass().getClassLoader().getResourceAsStream(filename);
+            assertNotNull(String.format("Test file not found: %s - Please report to TA", filename), maxKeyStream);
+            s2 = new Scanner(maxKeyStream);
             String oversizedKey = s2.nextLine();
             when(mockCache.getLock(oversizedKey)).thenReturn(new ReentrantLock());
             server.put(oversizedKey, "cal");
             fail("Server was supposed to throw an exception for oversized key");
-        } catch (FileNotFoundException f) {
-            fail("Bad test file name! - Please report to TA");
-        } catch (KVException pass){
+        } catch (KVException pass) {
             assertKVExceptionEquals(ERROR_OVERSIZED_KEY, pass);
         }
     }
@@ -124,14 +130,14 @@ public class KVServerTest {
         setupMockServer();
         Scanner s2 = null;
         try {
-            File maxValueFile = new File(getClass().getClassLoader().getResource("gobears_maxvalue.txt").getPath());
-            s2 = new Scanner(maxValueFile);
+            final String filename = "gobears_maxvalue.txt";
+            InputStream maxValueStream = getClass().getClassLoader().getResourceAsStream(filename);
+            assertNotNull(String.format("Test file not found: %s - Please report to TA", filename), maxValueStream);
+            s2 = new Scanner(maxValueStream);
             String oversizedValue = s2.nextLine();
             when(mockCache.getLock(oversizedValue)).thenReturn(new ReentrantLock());
             server.put("foo", oversizedValue);
-            fail("Server was supposed to throw an exception for oversized key");
-        } catch (FileNotFoundException f) {
-            fail("Bad test file name! - Please report to TA");
+            fail("Server was supposed to throw an exception for oversized value");
         } catch (KVException pass){
             assertKVExceptionEquals(ERROR_OVERSIZED_VALUE, pass);
         }
@@ -283,11 +289,11 @@ public class KVServerTest {
         when(mockCache.getLock("cal")).thenReturn(l1);
         when(mockCache.getLock("stan")).thenReturn(l2);
         doAnswer(checkParallelSerial1).when(mockCache).put("cal", "gobears");
-        try {
-            doAnswer(checkParallelSerial2).when(mockStore).del("cal");
-        } catch (KVException e) {
-            fail("Unexpected exception on del");
-        }
+        //try {
+        doAnswer(checkParallelSerial2).when(mockStore).put("cal", "gobears");
+        //} catch (KVException e) {
+        //    fail("Unexpected exception on put");
+        //}
 
         when(mockCache.get("stan")).thenReturn("furd");
         try {
