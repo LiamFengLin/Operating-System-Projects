@@ -104,6 +104,15 @@ public class TPCMasterHandler implements NetworkHandler {
 						response.setKey(message.getKey());
 						response.setValue(kvServer.get(message.getKey()));
 						response.sendMessage(f_socket);
+					} else if (msgType.equals(KVConstants.DEL_REQ)) {
+						kvServer.get(message.getKey());
+						response = new KVMessage(RESP, SUCCESS);
+						response.sendMessage(f_socket);
+
+					} else if (msgType.equals(KVConstants.PUT_REQ)) {
+						kvServer.put(message.getKey(), message.getValue());
+						response = new KVMessage(RESP, SUCCESS);
+						response.sendMessage(f_socket);
 					}
 				}  catch (KVException e) {
 					try {

@@ -222,6 +222,96 @@ public class TPCMaster {
 	    		// if any of them times out, close socket and resend ACK response for that slave
     			// after all ACK received, update master cache
 	    // Lock.unlock()
+    	
+    	String key = msg.getKey();
+    	String value = msg.getValue();
+    	if (key == null || key.equals("")) {
+    		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+    	if (key.length() > MAX_KEY_SIZE) {
+    		throw new KVException(ERROR_OVERSIZED_KEY);
+    	}
+    	Lock lock = null;
+    	try{
+    		lock = this.masterCache.getLock(key);
+        	if (lock != null){
+        		lock.lock();
+        	}
+        	if (!isPutReq) {
+        		this.masterCache.del(key);
+                TPCSlaveInfo first_replica = this.findFirstReplica(key);
+            	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
+                Socket sock = first_replica.connectHost(TIMEOUT);
+        		KVMessage kvMessage = new KVMessage(DEL_REQ);
+            	kvMessage.setKey(key);
+            	kvMessage.sendMessage(sock);
+            	first_replica.closeHost(sock);
+            	
+            	KVMessage kvReturnMessage = new KVMessage(sock);
+            	String returnMessage = kvReturnMessage.getMessage();
+            	if (returnMessage == null) {
+            		throw new KVException(KVConstants.ERROR_PARSER);
+            	}
+                if (!returnMessage.equals(KVConstants.SUCCESS)){
+                	throw new KVException(returnMessage);
+                }
+                
+                sock = second_replica.connectHost(TIMEOUT);
+            	kvMessage.sendMessage(sock);
+            	second_replica.closeHost(sock);
+            	
+            	kvReturnMessage = new KVMessage(sock);
+            	returnMessage = kvReturnMessage.getMessage();
+            	if (returnMessage == null) {
+            		throw new KVException(KVConstants.ERROR_PARSER);
+            	}
+                if (!returnMessage.equals(KVConstants.SUCCESS)){
+                	throw new KVException(returnMessage);
+                }
+                
+        	} else {
+        		this.masterCache.put(key, value);
+        		KVMessage kvMessage = new KVMessage(PUT_REQ);
+            	kvMessage.setKey(key);
+            	kvMessage.setValue(value);
+        		TPCSlaveInfo first_replica = this.findFirstReplica(key);
+            	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
+            	
+            	Socket sock = first_replica.connectHost(TIMEOUT);
+            	kvMessage.setKey(key);
+            	kvMessage.sendMessage(sock);
+            	first_replica.closeHost(sock);
+        		
+            	kvMessage.sendMessage(sock);
+            	
+            	KVMessage kvReturnMessage = new KVMessage(sock);
+                String returnMessage = kvReturnMessage.getMessage();
+                if (!returnMessage.equals(KVConstants.SUCCESS)){
+                	
+                	throw new KVException(returnMessage);
+                }
+                
+                sock = second_replica.connectHost(TIMEOUT);
+                kvMessage.sendMessage(sock);
+            	
+            	kvReturnMessage = new KVMessage(sock);
+                returnMessage = kvReturnMessage.getMessage();
+                if (!returnMessage.equals(KVConstants.SUCCESS)){
+                	
+                	throw new KVException(returnMessage);
+                }
+        	}
+        	
+        	if (lock != null){
+            	lock.unlock();
+            }
+            
+    	} catch (Exception e) {
+    		if (lock != null){
+            	lock.unlock();
+            }
+    		throw e;
+    	}
     				
     }
 
@@ -281,6 +371,7 @@ public class TPCMaster {
                 	KVMessage kvReturnMessage = new KVMessage(sock);
                 	val = kvReturnMessage.getValue();
                 	String returnMessage = kvReturnMessage.getMessage();
+                	first_replica.closeHost(sock);
                 	if (returnMessage != null){
                     	throw new KVException(returnMessage);
                     }
@@ -293,6 +384,7 @@ public class TPCMaster {
                 	KVMessage kvReturnMessage = new KVMessage(sock);
                 	val = kvReturnMessage.getValue();
                 	String returnMessage = kvReturnMessage.getMessage();
+                	second_replica.closeHost(sock);
                 	if (returnMessage != null){
                     	throw new KVException(returnMessage);
                     }
