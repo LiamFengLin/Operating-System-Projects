@@ -51,7 +51,7 @@ public class TPCMaster {
         // implement me
     	// check if already registered
     	for(int i = 0; i < numSlaves; i++){
-    		if(slaveArray[i].slaveID == slave.slaveID){
+    		if(slaveArray[i] != null && slaveArray[i].slaveID == slave.slaveID){
     			slaveArray[i] = slave;
     			return;
     		}
