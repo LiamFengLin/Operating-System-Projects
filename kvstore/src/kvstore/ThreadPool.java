@@ -24,8 +24,11 @@ public class ThreadPool {
         this.threadQueue = new LinkedList<Runnable>();
         this.queueLock = new ReentrantLock();
         this.notEmpty = queueLock.newCondition();
-        threads[0] = new WorkerThread(this);
-        threads[0].start();
+        for (int i = 0 ;i < size; i++) {
+        	threads[i] = new WorkerThread(this);
+            threads[i].start();
+        }
+        
     }
 
     /**
@@ -87,28 +90,9 @@ public class ThreadPool {
         public void run() {
         	try {
         		Runnable r;
-        		int empty = -1;
-        		boolean flag;
         		while (true) {
             		r = threadPool.getJob();
-            		flag = false;
-            		
-            		while (true) {
-            			for (int i = 0; i < threadPool.maxSize; i++) {
-                        	if (threadPool.threads[i] == null || !threadPool.threads[i].isAlive()) {
-                        		empty = i;
-                        		flag = true;
-                        	}
-                        }
-                		if (flag && empty != -1) {
-                			Thread t = new Thread(r);
-                			threadPool.threads[empty] = t;
-                			t.start();
-                			break;
-                		}
-            		}
-            		
-            		
+            		r.run();	
             	}
             	
         	} catch (InterruptedException e) {

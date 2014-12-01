@@ -104,6 +104,7 @@ public class KVServer implements KeyValueInterface {
             if(val == null) {
             	val = this.dataStore.get(key);
             }
+            this.dataCache.put(key, val);
             if (lock != null){
             	lock.unlock();
             }

@@ -15,6 +15,8 @@ public class TPCMaster {
     
     // slave id array
     // lock
+    private static final int MAX_KEY_SIZE = 256;
+    private static final int MAX_VAL_SIZE = 256 * 1024;
 
     /**
      * Creates TPCMaster, expecting numSlaves slave servers to eventually register
@@ -190,7 +192,63 @@ public class TPCMaster {
     		// send KVMessage(GET_REQ) to the other replica
         	// Wait for response; If secondary succeeded, return value
         // If secondary failed, return KVExceptions from both replicas
-        return null;
+    	String key = msg.getKey();
+    	if (key == null || key.equals("")) {
+    		throw new KVException(KVConstants.ERROR_INVALID_KEY);
+    	}
+    	if (key.length() > MAX_KEY_SIZE) {
+    		throw new KVException(ERROR_OVERSIZED_KEY);
+    	}
+    	Lock lock = null;
+    	try {
+    		lock = this.masterCache.getLock(key);
+        	if (lock != null){
+            	lock.lock();
+            }
+            String val = this.masterCache.get(key);
+            if(val == null) {
+            	TPCSlaveInfo first_replica = this.findFirstReplica(key);
+            	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
+            	Socket sock;
+            	try {
+            		sock = first_replica.connectHost(TIMEOUT);
+            		KVMessage kvMessage = new KVMessage(GET_REQ);
+                	kvMessage.setKey(key);
+                	kvMessage.sendMessage(sock);
+                	
+                	KVMessage kvReturnMessage = new KVMessage(sock);
+                	val = kvReturnMessage.getValue();
+                	String returnMessage = kvReturnMessage.getMessage();
+                	if (returnMessage != null){
+                    	throw new KVException(returnMessage);
+                    }
+            	} catch (Exception e) {
+            		sock = second_replica.connectHost(TIMEOUT);
+            		KVMessage kvMessage = new KVMessage(GET_REQ);
+                	kvMessage.setKey(key);
+                	kvMessage.sendMessage(sock);
+                	
+                	KVMessage kvReturnMessage = new KVMessage(sock);
+                	val = kvReturnMessage.getValue();
+                	String returnMessage = kvReturnMessage.getMessage();
+                	if (returnMessage != null){
+                    	throw new KVException(returnMessage);
+                    }
+            	}
+            	
+            	
+            }
+            this.masterCache.put(key, val);
+            if (lock != null){
+            	lock.unlock();
+            }
+        	return val;
+    	} catch (Exception e) {
+    		if (lock != null){
+            	lock.unlock();
+            }
+    		throw new KVException(KVConstants.ERROR_NO_SUCH_KEY);
+    	}
     }
 
 }
