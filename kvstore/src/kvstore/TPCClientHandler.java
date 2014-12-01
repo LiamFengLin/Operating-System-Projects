@@ -31,6 +31,8 @@ public class TPCClientHandler implements NetworkHandler {
      */
     public TPCClientHandler(TPCMaster tpcMaster, int connections) {
         // implement me
+    	this.threadPool = new ThreadPool(connections);
+    	this.tpcMaster = tpcMaster;
     }
 
     /**
@@ -42,6 +44,35 @@ public class TPCClientHandler implements NetworkHandler {
     @Override
     public void handle(Socket client) {
         // implement me
+    	Runnable handlerThread = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					KVMessage message = new KVMessage(client);
+					KVMessage response;
+
+					String msgType = message.getMsgType();
+					if (msgType.equals(KVConstants.GET_REQ)) {
+						response = new KVMessage(RESP);
+						response.setKey(message.getKey());
+						response.setValue(tpcMaster.handleGet(message));
+						response.sendMessage(client);
+					}
+				} catch (KVException e) {
+					try {
+						e.getKVMessage().sendMessage(client);
+					} catch (KVException e_again) {
+						System.out.println(e_again.toString());
+					}
+
+				}
+			}
+		};
+		try {
+			this.threadPool.addJob(handlerThread);
+		} catch (InterruptedException e) {
+			System.out.println(e.getMessage());
+		}
     }
     
     // implement me

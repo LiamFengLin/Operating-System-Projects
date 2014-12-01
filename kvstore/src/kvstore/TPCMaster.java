@@ -247,6 +247,9 @@ public class TPCMaster {
     		// send KVMessage(GET_REQ) to the other replica
         	// Wait for response; If secondary succeeded, return value
         // If secondary failed, return KVExceptions from both replicas
+    	
+    	
+    	
     	String key = msg.getKey();
     	if (key == null || key.equals("")) {
     		throw new KVException(KVConstants.ERROR_INVALID_KEY);
