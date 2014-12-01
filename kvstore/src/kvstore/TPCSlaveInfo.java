@@ -14,6 +14,8 @@ public class TPCSlaveInfo {
     public long slaveID;
     public String hostname;
     public int port;
+    
+    private static final Pattern INFO_STRING_PAT = Pattern.compile("(\\d++)@(\\w++\\.\\w++):(\\d++)");
 
     /**
      * Construct a TPCSlaveInfo to represent a slave server.
@@ -23,6 +25,25 @@ public class TPCSlaveInfo {
      */
     public TPCSlaveInfo(String info) throws KVException {
         // implement me
+    	// check that it is the correct format
+    	Matcher matchedInfo = INFO_STRING_PAT.matcher(info);
+    	String slaveId = matchedInfo.group(1);
+    	String hostname = matchedInfo.group(2);
+    	String port = matchedInfo.group(3);
+    	if (slaveId == null || hostname == null || port == null){
+    		throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+    	}
+    	try {
+    		this.slaveID = Long.parseLong(slaveId);
+    	} catch (NumberFormatException e) {
+    		throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+    	}
+    	this.hostname = hostname;
+    	try {
+    		this.port = Integer.parseInt(port);
+    	} catch (NumberFormatException e) {
+    		throw new KVException(KVConstants.ERROR_INVALID_FORMAT);
+    	}
     }
 
     public long getSlaveID() {
@@ -46,7 +67,22 @@ public class TPCSlaveInfo {
      */
     public Socket connectHost(int timeout) throws KVException {
         // implement me
-        return null;
+    	// need to split IOException into that from the socket and that from connet
+    	boolean socketNoError = false;
+    	try {
+        	Socket socket = new Socket(this.hostname, this.port);
+        	socketNoError = true;
+        	socket.connect(new InetSocketAddress(this.hostname, this.port), timeout);
+        	return socket;
+        } catch (SocketTimeoutException e) {
+        	throw new KVException(ERROR_SOCKET_TIMEOUT);
+        } catch (IOException e) {
+        	if (socketNoError) {
+        		throw new KVException(ERROR_COULD_NOT_CONNECT);
+        	} else {
+        		throw new KVException(ERROR_COULD_NOT_CREATE_SOCKET);	
+        	}
+        }
     }
 
     /**
@@ -57,5 +93,9 @@ public class TPCSlaveInfo {
      */
     public void closeHost(Socket sock) {
         // implement me
+    	try {
+			sock.close();
+		} catch (IOException e) {
+		}
     }
 }

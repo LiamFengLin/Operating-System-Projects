@@ -42,8 +42,39 @@ public class TPCRegistrationHandler implements NetworkHandler {
      * @param slave Socket connected to the slave with the request
      */
     @Override
-    public void handle(Socket slave) {
+    public void handle(final Socket slave) {
         // implement me
+    	final TPCMaster master = this.master;
+		Runnable handlerThread = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					KVMessage message = new KVMessage(slave);
+					KVMessage response;
+					String msgType = message.getMsgType();
+					String registrationMessage = message.getMessage();
+					if (msgType.equals(KVConstants.REGISTER)) {
+						TPCSlaveInfo newSlave = new TPCSlaveInfo(registrationMessage);
+						master.registerSlave(newSlave);
+						response = new KVMessage(RESP);
+						response.setMessage(registrationMessage);
+						response.sendMessage(slave);
+					}
+				} catch (KVException e) {
+					try {
+						e.getKVMessage().sendMessage(slave);
+					} catch (KVException e_again) {
+						System.out.println(e_again.toString());
+					}
+				}
+			}
+		};
+		try {
+			this.threadpool.addJob(handlerThread);
+		} catch (InterruptedException e) {
+			System.out.println(e.getMessage());
+		}
+
     }
     
     // implement me
