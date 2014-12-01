@@ -90,11 +90,12 @@ public class TPCMasterHandler implements NetworkHandler {
      */
     @Override
     public void handle(Socket master) {
+    	final Socket f_socket = master;
     	Runnable handlerThread = new Runnable() {
 			@Override
 			public void run() {
 				try {
-					KVMessage message = new KVMessage(master);
+					KVMessage message = new KVMessage(f_socket);
 					KVMessage response;
 
 					String msgType = message.getMsgType();
@@ -102,11 +103,11 @@ public class TPCMasterHandler implements NetworkHandler {
 						response = new KVMessage(RESP);
 						response.setKey(message.getKey());
 						response.setValue(kvServer.get(message.getKey()));
-						response.sendMessage(master);
+						response.sendMessage(f_socket);
 					}
 				}  catch (KVException e) {
 					try {
-						e.getKVMessage().sendMessage(master);
+						e.getKVMessage().sendMessage(f_socket);
 					} catch (KVException e_again) {
 						System.out.println(e_again.toString());
 					}
