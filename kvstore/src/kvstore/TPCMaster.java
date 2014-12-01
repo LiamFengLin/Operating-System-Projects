@@ -60,6 +60,7 @@ public class TPCMaster {
     	for(int i = 0; i < numSlaves; i++){
     		if(slaveArray[i] == null){
     			slaveArray[i] = slave;
+    			return;
     		}
     	}
     }
@@ -151,7 +152,7 @@ public class TPCMaster {
     	// nextReplicaIndex = (firstReplicaIndex + 1) % numSlaves
     	// return nexReplicaIndex
     	for(int i = 0; i < numSlaves; i ++){
-    		if(slaveArray[i].slaveID == firstReplica.slaveID){
+    		if(slaveArray[i] != null && slaveArray[i].slaveID == firstReplica.slaveID){
     			int index = (i+1)%numSlaves;
     			if (index < 0) {
     				index += numSlaves;
