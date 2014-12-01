@@ -102,11 +102,15 @@ public class TPCMasterTest {
 		master.registerSlave(slave2);
 		master.registerSlave(slave3);
 		master.registerSlave(slave4);
-
-		assertEquals(master.findSuccessor(slave1), slave2);
-		assertEquals(master.findSuccessor(slave2), slave3);
-		assertEquals(master.findSuccessor(slave3), slave4);
-		assertEquals(master.findSuccessor(slave4), slave1);
+		long testId1 = master.findSuccessor(slave1).slaveID;
+		long testId2 = master.findSuccessor(slave2).slaveID;
+		long testId3 = master.findSuccessor(slave3).slaveID;
+		long testId4 = master.findSuccessor(slave4).slaveID;
+		
+		assertEquals(testId1, slave2.slaveID);
+		assertEquals(testId2, slave3.slaveID);
+		assertEquals(testId3, slave4.slaveID);
+		assertEquals(testId4, slave1.slaveID);
 	}
 
 	@Test

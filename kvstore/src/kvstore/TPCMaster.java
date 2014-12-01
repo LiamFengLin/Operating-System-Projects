@@ -121,7 +121,7 @@ public class TPCMaster {
     	int resultIndex = -1;
     	long hashValue = hashTo64bit(key);
     	for(int i = 0; i < numSlaves; i++){
-    		if(isLessThanEqualUnsigned(hashValue,slaveArray[i].slaveID)){
+    		if(slaveArray[i] != null && isLessThanEqualUnsigned(hashValue,slaveArray[i].slaveID)){
     			if(isLessThanUnsigned(slaveArray[i].slaveID, smallestGreater)){
     				smallestGreater = slaveArray[i].slaveID;
     				resultIndex = i;
@@ -131,7 +131,7 @@ public class TPCMaster {
     	long smallestId = Long.MAX_VALUE;
     	if(resultIndex == -1){
     		for(int i = 0; i < numSlaves; i ++){
-    			if(slaveArray[i].slaveID < smallestId){
+    			if(slaveArray[i] != null && slaveArray[i].slaveID < smallestId){
     				smallestId = slaveArray[i].slaveID;
     				resultIndex = i;
     			}
@@ -151,16 +151,42 @@ public class TPCMaster {
     	// iterate through slave array; firstReplicaIndex = find index of firstReplica
     	// nextReplicaIndex = (firstReplicaIndex + 1) % numSlaves
     	// return nexReplicaIndex
-    	for(int i = 0; i < numSlaves; i ++){
-    		if(slaveArray[i] != null && slaveArray[i].slaveID == firstReplica.slaveID){
-    			int index = (i+1)%numSlaves;
-    			if (index < 0) {
-    				index += numSlaves;
+//    	for(int i = 0; i < numSlaves; i ++){
+//    		if(slaveArray[i] != null && slaveArray[i].slaveID == firstReplica.slaveID){
+//    			int index = (i+1)%numSlaves;
+//    			if (index < 0) {
+//    				index += numSlaves;
+//    			}
+//    			return slaveArray[index];
+//    		}
+//    	}
+//    	return null;
+    	
+    	long first = firstReplica.slaveID;
+    	int resultIndex = -1;
+    	boolean notChecked = true;
+    	long smallestGreater = Long.MAX_VALUE;
+    	for(int i = 0; i < numSlaves; i++){
+    		if(slaveArray[i] != null && isLessThanUnsigned(first, slaveArray[i].slaveID)){
+    			if(isLessThanUnsigned(slaveArray[i].slaveID, smallestGreater) || notChecked){
+    				notChecked = false;
+    				smallestGreater = slaveArray[i].slaveID;
+    				resultIndex = i;
     			}
-    			return slaveArray[index];
     		}
     	}
-    	return null;
+    	if(resultIndex == -1){
+    		long smallestId = Long.MAX_VALUE;
+    		for(int i = 0; i < numSlaves; i ++){
+    			if(slaveArray[i] != null && isLessThanUnsigned(slaveArray[i].slaveID, smallestId)){
+    				smallestId = slaveArray[i].slaveID;
+    				resultIndex = i;
+    			}
+    		}
+    	}
+    	return slaveArray[resultIndex];
+    	
+    	
     }
 
     /**
