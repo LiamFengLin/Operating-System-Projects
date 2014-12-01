@@ -117,7 +117,7 @@ public class TPCMaster {
     	// keySpaceSize for each slave = 2^64 / numSlaves
     	// slaveIndex = hashcode(64 bits) / keySpaceSize
     	// return slaveArray[slaveIndex]
-    	long smallestGreater = 0;
+    	long smallestGreater = Long.MAX_VALUE;
     	int resultIndex = -1;
     	long hashValue = hashTo64bit(key);
     	for(int i = 0; i < numSlaves; i++){
