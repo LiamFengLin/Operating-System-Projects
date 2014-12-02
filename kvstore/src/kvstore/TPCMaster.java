@@ -51,7 +51,7 @@ public class TPCMaster {
         // implement me
     	// check if already registered
     	for(int i = 0; i < numSlaves; i++){
-    		if(slaveArray[i] != null && slaveArray[i].slaveID == slave.slaveID){
+    		if(slaveArray[i] != null && slaveArray[i].getSlaveID() == slave.getSlaveID()){
     			slaveArray[i] = slave;
     			return;
     		}
@@ -121,9 +121,9 @@ public class TPCMaster {
     	int resultIndex = -1;
     	long hashValue = hashTo64bit(key);
     	for(int i = 0; i < numSlaves; i++){
-    		if(slaveArray[i] != null && isLessThanEqualUnsigned(hashValue,slaveArray[i].slaveID)){
-    			if(isLessThanUnsigned(slaveArray[i].slaveID, smallestGreater)){
-    				smallestGreater = slaveArray[i].slaveID;
+    		if(slaveArray[i] != null && isLessThanEqualUnsigned(hashValue,slaveArray[i].getSlaveID())){
+    			if(isLessThanUnsigned(slaveArray[i].getSlaveID(), smallestGreater)){
+    				smallestGreater = slaveArray[i].getSlaveID();
     				resultIndex = i;
     			}
     		}
@@ -131,8 +131,8 @@ public class TPCMaster {
     	long smallestId = Long.MAX_VALUE;
     	if(resultIndex == -1){
     		for(int i = 0; i < numSlaves; i ++){
-    			if(slaveArray[i] != null && slaveArray[i].slaveID < smallestId){
-    				smallestId = slaveArray[i].slaveID;
+    			if(slaveArray[i] != null && slaveArray[i].getSlaveID() < smallestId){
+    				smallestId = slaveArray[i].getSlaveID();
     				resultIndex = i;
     			}
     		}
@@ -151,26 +151,16 @@ public class TPCMaster {
     	// iterate through slave array; firstReplicaIndex = find index of firstReplica
     	// nextReplicaIndex = (firstReplicaIndex + 1) % numSlaves
     	// return nexReplicaIndex
-//    	for(int i = 0; i < numSlaves; i ++){
-//    		if(slaveArray[i] != null && slaveArray[i].slaveID == firstReplica.slaveID){
-//    			int index = (i+1)%numSlaves;
-//    			if (index < 0) {
-//    				index += numSlaves;
-//    			}
-//    			return slaveArray[index];
-//    		}
-//    	}
-//    	return null;
     	
-    	long first = firstReplica.slaveID;
+    	long first = firstReplica.getSlaveID();
     	int resultIndex = -1;
     	boolean notChecked = true;
     	long smallestGreater = Long.MAX_VALUE;
     	for(int i = 0; i < numSlaves; i++){
-    		if(slaveArray[i] != null && isLessThanUnsigned(first, slaveArray[i].slaveID)){
-    			if(isLessThanUnsigned(slaveArray[i].slaveID, smallestGreater) || notChecked){
+    		if(slaveArray[i] != null && isLessThanUnsigned(first, slaveArray[i].getSlaveID())){
+    			if(isLessThanUnsigned(slaveArray[i].getSlaveID(), smallestGreater) || notChecked){
     				notChecked = false;
-    				smallestGreater = slaveArray[i].slaveID;
+    				smallestGreater = slaveArray[i].getSlaveID();
     				resultIndex = i;
     			}
     		}
@@ -178,8 +168,8 @@ public class TPCMaster {
     	if(resultIndex == -1){
     		long smallestId = Long.MAX_VALUE;
     		for(int i = 0; i < numSlaves; i ++){
-    			if(slaveArray[i] != null && isLessThanUnsigned(slaveArray[i].slaveID, smallestId)){
-    				smallestId = slaveArray[i].slaveID;
+    			if(slaveArray[i] != null && isLessThanUnsigned(slaveArray[i].getSlaveID(), smallestId)){
+    				smallestId = slaveArray[i].getSlaveID();
     				resultIndex = i;
     			}
     		}
@@ -212,7 +202,7 @@ public class TPCMaster {
         // implement me
     	// iterate through the slave array; compare each ID and find corresponding slaveId
         for(int i = 0; i < numSlaves; i++){
-        	if(slaveArray[i].slaveID == slaveId){
+        	if(slaveArray[i].getSlaveID() == slaveId){
         		return slaveArray[i];
         	}
         }
@@ -395,7 +385,7 @@ public class TPCMaster {
                 	kvMessage.setKey(key);
                 	kvMessage.sendMessage(sock);
                 	
-                	KVMessage kvReturnMessage = new KVMessage(sock);
+                	KVMessage kvReturnMessage = new KVMessage(sock, TIMEOUT);
                 	val = kvReturnMessage.getValue();
                 	String returnMessage = kvReturnMessage.getMessage();
                 	first_replica.closeHost(sock);
