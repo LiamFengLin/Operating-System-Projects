@@ -359,10 +359,14 @@ public class TPCMaster {
             	lock.lock();
             }
             String val = this.masterCache.get(key);
+            
             if(val == null) {
+            	
             	TPCSlaveInfo first_replica = this.findFirstReplica(key);
+            	System.out.println("??????????????????????");
             	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
             	Socket sock;
+            	
             	try {
             		sock = first_replica.connectHost(TIMEOUT);
             		KVMessage kvMessage = new KVMessage(GET_REQ);
@@ -371,6 +375,9 @@ public class TPCMaster {
                 	
                 	KVMessage kvReturnMessage = new KVMessage(sock);
                 	val = kvReturnMessage.getValue();
+                	System.out.println("==========================");
+                	System.out.println(val);
+                	System.out.println("==========================");
                 	String returnMessage = kvReturnMessage.getMessage();
                 	first_replica.closeHost(sock);
                 	if (returnMessage != null){
