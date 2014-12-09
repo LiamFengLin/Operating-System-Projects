@@ -126,22 +126,34 @@ public class TPCMasterHandler implements NetworkHandler {
 						response.setValue(kvServer.get(message.getKey()));
 						response.sendMessage(f_socket);
 					} else if (phase == 2 && msgType.equals(KVConstants.COMMIT)) {
-						if (action.getMsgType().equals(KVConstants.DEL_REQ)) {
-							kvServer.del(message.getKey());
-							response = new KVMessage(ACK);
-							response.sendMessage(f_socket);
-							
-						} else if (action.getMsgType().equals(KVConstants.PUT_REQ)) {
-							kvServer.put(message.getKey(), message.getValue());
-							response = new KVMessage(ACK);
-							response.sendMessage(f_socket);
+						tpcLog.appendAndFlush(message);
+						if (action != null) {
+							if (action.getMsgType().equals(KVConstants.DEL_REQ)) {
+								kvServer.del(action.getKey());								
+							} else if (action.getMsgType().equals(KVConstants.PUT_REQ)) {
+								kvServer.put(action.getKey(), action.getValue());
+							}
 						}
+						response = new KVMessage(ACK);
+						response.sendMessage(f_socket);
 						phase = 1;
 
-					} else if (msgType.equals(KVConstants.PUT_REQ)) {
-						
-					} else if (msgType.equals(KVConstants.DEL_REQ)) {
-						
+					} else if (phase == 1 && msgType.equals(KVConstants.PUT_REQ)) {
+						tpcLog.appendAndFlush(message);
+						action = message;
+						response = new KVMessage(READY);
+						response.sendMessage(f_socket);
+						phase = 2;
+					} else if (phase == 1 && msgType.equals(KVConstants.DEL_REQ)) {
+						tpcLog.appendAndFlush(message);
+						action = message;
+						response = new KVMessage(READY);
+						response.sendMessage(f_socket);
+						phase = 2;
+					} else if (phase == 2 && msgType.equals(KVConstants.ABORT))  {
+						tpcLog.appendAndFlush(message);
+						action = null;
+						phase = 1;
 					}
 				}  catch (KVException e) {
 					try {
