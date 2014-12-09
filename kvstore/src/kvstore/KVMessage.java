@@ -89,15 +89,17 @@ public class KVMessage implements Serializable {
     	// get from sock
     	// call kv message constructor
     	try {
-    		if (timeout == 0) {
-				InputStream is = sock.getInputStream();
-				
-				KVMessageType kvMessage = unmarshal(is);
-				this.key = kvMessage.getKey();
-				this.value = kvMessage.getValue();
-				this.msgType = kvMessage.getType();
-				this.message = kvMessage.getMessage();
+    		if (timeout != 0) {
+    			sock.setSoTimeout(timeout);
     		}
+    		InputStream is = sock.getInputStream();
+			
+			KVMessageType kvMessage = unmarshal(is);
+			this.key = kvMessage.getKey();
+			this.value = kvMessage.getValue();
+			this.msgType = kvMessage.getType();
+			this.message = kvMessage.getMessage();
+			
     	} catch (SocketException e) {
     		throw new KVException(ERROR_COULD_NOT_RECEIVE_DATA);
 		} catch (IOException e) {

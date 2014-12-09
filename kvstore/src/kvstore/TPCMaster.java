@@ -259,19 +259,65 @@ public class TPCMaster {
         	if (lock != null){
         		lock.lock();
         	}
+        	TPCSlaveInfo first_replica = this.findFirstReplica(key);
+        	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
+            Socket sock1 = first_replica.connectHost(TIMEOUT);
+            Socket sock2 = second_replica.connectHost(TIMEOUT);
+            try {
+            	msg.sendMessage(sock1);
+            	KVMessage kvReturnMessage1 = new KVMessage(sock1, TIMEOUT);
+            	msg.sendMessage(sock2);
+            	KVMessage kvReturnMessage2 = new KVMessage(sock2, TIMEOUT);
+            	if (kvReturnMessage1.getMsgType() != READY || kvReturnMessage2.getMsgType() != READY) {
+            		throw new KVException("error");
+            	}
+            } catch (Exception e) {
+            	KVMessage abortMsg = new KVMessage(ABORT);
+        		KVMessage abortRsp1;
+        		KVMessage abortRsp2;
+            	while (true) {
+            		try {
+            			first_replica = this.findFirstReplica(key);
+                    	second_replica = this.findSuccessor(first_replica);
+            			Socket abortsock1 = first_replica.connectHost(TIMEOUT);
+                        Socket abortsock2 = second_replica.connectHost(TIMEOUT);
+            			abortMsg.sendMessage(abortsock1);
+            			abortMsg.sendMessage(abortsock2);
+            			abortRsp1 = new KVMessage(abortsock1, TIMEOUT);
+            			abortRsp2 = new KVMessage(abortsock2, TIMEOUT);
+            			if (abortRsp1.getMsgType() == ACK && abortRsp2.getMsgType() == ACK) {
+            				break;
+            			}
+            		} catch (Exception e2) {
+            			
+            		}
+            	}
+            	throw new KVException("getting out");
+            }
+            KVMessage commitMsg = new KVMessage(COMMIT);
+    		KVMessage commitRsp1;
+    		KVMessage commitRsp2;
+        	while (true) {
+        		try {
+        			first_replica = this.findFirstReplica(key);
+                	second_replica = this.findSuccessor(first_replica);
+        			Socket commitsock1 = first_replica.connectHost(TIMEOUT);
+                    Socket commitsock2 = second_replica.connectHost(TIMEOUT);
+        			commitMsg.sendMessage(commitsock1);
+        			commitMsg.sendMessage(commitsock2);
+        			commitRsp1 = new KVMessage(commitsock1, TIMEOUT);
+        			commitRsp2 = new KVMessage(commitsock2, TIMEOUT);
+        			if (commitRsp1.getMsgType() == ACK && commitRsp2.getMsgType() == ACK) {
+        				break;
+        			}
+        		} catch (Exception e2) {
+        			
+        		}
+        	}
         	if (!isPutReq) {
-        		this.masterCache.del(key);
-                TPCSlaveInfo first_replica = this.findFirstReplica(key);
-            	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
-                Socket sock = first_replica.connectHost(TIMEOUT);
-        		
-                
+        		this.masterCache.del(key);  
         	} else {
         		this.masterCache.put(key, value);
-        		TPCSlaveInfo first_replica = this.findFirstReplica(key);
-            	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
-            	
-            	
         	}
         	
         	if (lock != null){
@@ -339,7 +385,6 @@ public class TPCMaster {
             if(val == null) {
             	
             	TPCSlaveInfo first_replica = this.findFirstReplica(key);
-            	System.out.println("??????????????????????");
             	TPCSlaveInfo second_replica = this.findSuccessor(first_replica);
             	Socket sock;
             	
@@ -351,9 +396,6 @@ public class TPCMaster {
                 	
                 	KVMessage kvReturnMessage = new KVMessage(sock, TIMEOUT);
                 	val = kvReturnMessage.getValue();
-                	System.out.println("==========================");
-                	System.out.println(val);
-                	System.out.println("==========================");
                 	String returnMessage = kvReturnMessage.getMessage();
                 	first_replica.closeHost(sock);
                 	if (returnMessage != null){
