@@ -108,7 +108,36 @@ public class TPCLog {
     public void rebuildServer() throws KVException {
         loadFromDisk();
 
-        // implement me
+    	int logIndex = 0;
+    	int logLength = this.entries.size();
+    	KVMessage currentEntry;
+      	String currentMessageType;
+      	KVMessage lastRequest = null;
+      	String lastKey;
+      	String lastVal;
+      	String lastType;
+      	
+    	while (logIndex < logLength) {
+    		currentEntry = this.entries.get(logIndex);
+    		logIndex += 1;
+    		currentMessageType = currentEntry.getMsgType();
+    		if (currentMessageType.equals(KVConstants.DEL_REQ) || currentMessageType.equals(KVConstants.PUT_REQ)) {
+    			lastRequest = currentEntry;
+    		} else if (currentMessageType.equals(KVConstants.COMMIT)) {
+    			// if there is a commit in the log, there must be a del or put request before it
+    			lastKey = lastRequest.getKey();
+				lastVal = lastRequest.getValue();
+				lastType = lastRequest.getMsgType();
+				if (lastType.equals(KVConstants.DEL_REQ)) {
+					this.kvServer.del(lastKey);
+				} else if (lastType.equals(KVConstants.PUT_REQ)) {
+					this.kvServer.put(lastKey, lastVal);
+				}
+				lastRequest = null;
+    		} else if (currentMessageType.equals(KVConstants.ABORT)) {
+    			lastRequest = null;
+    		}
+    	}
     }
 
 }

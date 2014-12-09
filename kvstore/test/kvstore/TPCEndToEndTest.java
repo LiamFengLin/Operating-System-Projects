@@ -26,7 +26,9 @@ public class TPCEndToEndTest extends TPCEndToEndTemplate {
 			this.client.put("testKey", "testValue");
 			assertEquals("testValue", this.client.get("testKey"));
         } catch (KVException e) {
+        	e.printStackTrace();
             fail("Client threw unexpected exception!");
+        	
         }
 	}
 	

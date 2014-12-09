@@ -67,7 +67,8 @@ public class SocketServer {
     public void connect() throws IOException {
     	try {
     		if (this.getPort() == 0) {
-            	this.server = new ServerSocket();
+    			
+            	this.server = new ServerSocket(0);
             	this.port = this.server.getLocalPort();
             } else {
             	this.server = new ServerSocket(this.port);
