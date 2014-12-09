@@ -74,7 +74,7 @@ public class TPCSlaveInfo {
     	// need to split IOException into that from the socket and that from connet
     	boolean socketNoError = false;
     	try {
-        	Socket socket = new Socket(this.hostname, this.port);
+        	Socket socket = new Socket();
         	socketNoError = true;
         	socket.connect(new InetSocketAddress(this.hostname, this.port), timeout);
         	return socket;

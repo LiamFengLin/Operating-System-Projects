@@ -18,7 +18,7 @@ import autograder.AGCategories.AGTestDetails;
 import autograder.AGCategories.AG_PROJ4_CODE;
 
 public class TPCEndToEndTest extends TPCEndToEndTemplate {
-	@Test(timeout = kTimeoutDefault)
+	@Test()
     @Category(AG_PROJ4_CODE.class)
     @AGTestDetails(points = 1, desc = "Single put request")
 	public void onePutRequest() {
@@ -26,7 +26,6 @@ public class TPCEndToEndTest extends TPCEndToEndTemplate {
 			this.client.put("testKey", "testValue");
 			assertEquals("testValue", this.client.get("testKey"));
         } catch (KVException e) {
-        	e.printStackTrace();
             fail("Client threw unexpected exception!");
         	
         }

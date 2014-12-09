@@ -268,7 +268,7 @@ public class TPCMaster {
             	KVMessage kvReturnMessage1 = new KVMessage(sock1, TIMEOUT);
             	msg.sendMessage(sock2);
             	KVMessage kvReturnMessage2 = new KVMessage(sock2, TIMEOUT);
-            	if (kvReturnMessage1.getMsgType() != READY || kvReturnMessage2.getMsgType() != READY) {
+            	if (!kvReturnMessage1.getMsgType().equals(READY) || !kvReturnMessage2.getMsgType().equals(READY)) {
             		throw new KVException("error");
             	}
             } catch (Exception e) {
@@ -285,7 +285,7 @@ public class TPCMaster {
             			abortMsg.sendMessage(abortsock2);
             			abortRsp1 = new KVMessage(abortsock1, TIMEOUT);
             			abortRsp2 = new KVMessage(abortsock2, TIMEOUT);
-            			if (abortRsp1.getMsgType() == ACK && abortRsp2.getMsgType() == ACK) {
+            			if (abortRsp1.getMsgType().equals(ACK) && abortRsp2.getMsgType().equals(ACK)) {
             				break;
             			}
             		} catch (Exception e2) {
@@ -307,7 +307,7 @@ public class TPCMaster {
         			commitMsg.sendMessage(commitsock2);
         			commitRsp1 = new KVMessage(commitsock1, TIMEOUT);
         			commitRsp2 = new KVMessage(commitsock2, TIMEOUT);
-        			if (commitRsp1.getMsgType() == ACK && commitRsp2.getMsgType() == ACK) {
+        			if (commitRsp1.getMsgType().equals(ACK) && commitRsp2.getMsgType().equals(ACK)) {
         				break;
         			}
         		} catch (Exception e2) {
