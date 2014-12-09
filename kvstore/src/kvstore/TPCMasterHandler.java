@@ -14,6 +14,8 @@ public class TPCMasterHandler implements NetworkHandler {
     public KVServer kvServer;
     public TPCLog tpcLog;
     public ThreadPool threadpool;
+    private int phase;
+    private KVMessage action;
 
     // implement me
 
@@ -42,6 +44,8 @@ public class TPCMasterHandler implements NetworkHandler {
         this.kvServer = kvServer;
         this.tpcLog = log;
         this.threadpool = new ThreadPool(connections);
+        this.phase = 1;
+        this.action = null;
     }
 
     /**
@@ -59,6 +63,23 @@ public class TPCMasterHandler implements NetworkHandler {
     public void registerWithMaster(String masterHostname, SocketServer server)
             throws KVException {
         // implement me
+    	KVMessage last = this.tpcLog.getLastEntry();
+    	if (last != null) {
+    		if (last.getMsgType().equals("putreq")) {
+    			this.phase = 1;
+    			this.action = last;
+    		} else if (last.getMsgType().equals("delreq")) {
+    			this.phase = 1;
+    			this.action = last;
+    		} else if (last.getMsgType().equals("commit")) {
+    			this.phase = 2;
+    		} else if (last.getMsgType().equals("abort")) {
+    			this.phase = 1;
+    			this.action = null;
+    		}
+    	}
+
+    	
     	String slaveHostname = server.getHostname();
     	String slavePort = Integer.toString(server.getPort());
     	String slaveId = Long.toString(this.slaveID);
@@ -104,15 +125,23 @@ public class TPCMasterHandler implements NetworkHandler {
 						response.setKey(message.getKey());
 						response.setValue(kvServer.get(message.getKey()));
 						response.sendMessage(f_socket);
-					} else if (msgType.equals(KVConstants.DEL_REQ)) {
-						kvServer.get(message.getKey());
-						response = new KVMessage(RESP, SUCCESS);
-						response.sendMessage(f_socket);
+					} else if (phase == 2 && msgType.equals(KVConstants.COMMIT)) {
+						if (action.getMsgType().equals(KVConstants.DEL_REQ)) {
+							kvServer.del(message.getKey());
+							response = new KVMessage(ACK);
+							response.sendMessage(f_socket);
+							
+						} else if (action.getMsgType().equals(KVConstants.PUT_REQ)) {
+							kvServer.put(message.getKey(), message.getValue());
+							response = new KVMessage(ACK);
+							response.sendMessage(f_socket);
+						}
+						phase = 1;
 
 					} else if (msgType.equals(KVConstants.PUT_REQ)) {
-						kvServer.put(message.getKey(), message.getValue());
-						response = new KVMessage(RESP, SUCCESS);
-						response.sendMessage(f_socket);
+						
+					} else if (msgType.equals(KVConstants.DEL_REQ)) {
+						
 					}
 				}  catch (KVException e) {
 					try {
