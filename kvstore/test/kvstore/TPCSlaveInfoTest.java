@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 import static kvstore.KVConstants.*;
 
 import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
 
 import org.junit.*;
 
@@ -66,4 +68,38 @@ public class TPCSlaveInfoTest {
 		assertEquals(slave4.getHostname(), "111.111.111.111");
 		assertEquals(slave5.getHostname(), "111.111.111.111");
 	}
+	
+	@Test 
+	public void getPortTest() throws KVException {
+		assertEquals(slave1.getPort(), 1);
+		assertEquals(slave2.getPort(), 2);
+		assertEquals(slave3.getPort(), 3);
+		assertEquals(slave4.getPort(), 4);
+		assertEquals(slave5.getPort(), 5);
+	}
+	
+	@Test
+	public void connectTimeOutTest() throws KVException {
+		try {
+	        //Mocking!!
+	        Socket sockMock = mock(Socket.class);
+	        TPCSlaveInfo slaveInfoMock = mock(TPCSlaveInfo.class);
+	        
+	        // slaveInfoMock always connects to sockMock
+	        PowerMockito.whenNew(Socket.class).withAnyArguments().thenReturn(sockMock);
+            // sockMock always throws SocketTimeOutException
+	        PowerMockito.doThrow(new SocketTimeoutException()).when(sockMock).connect(any(SocketAddress.class), any(Integer.class));
+            try {
+            	slaveInfoMock.connectHost(any(Integer.class));
+            }
+            catch (Exception e) {
+            	// Should be a ERROR_SOCKET_TIMEOUT
+            	assertEquals(ERROR_SOCKET_TIMEOUT, e);
+            }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        fail("This shouldn't fail");
+	    }
+	}
+	
 }
