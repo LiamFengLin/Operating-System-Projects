@@ -62,31 +62,9 @@ public class TPCMasterHandlerGetTest {
     @Test(timeout = kTimeoutQuick)
     @Category(AG_PROJ4_CODE.class)
     @AGTestDetails(points = 1,
-        desc = "Test if they can fail to get one value using Handler")
-    public void testFailureGet() throws KVException {
-        setupSocketSuccess();
-        InputStream getreqFile = getClass().getClassLoader().getResourceAsStream("getreq.txt");
-        ByteArrayOutputStream tempOut = new ByteArrayOutputStream();
-        try {
-            doNothing().when(sock1).setSoTimeout(anyInt());
-            when(sock1.getInputStream()).thenReturn(getreqFile);
-            when(sock1.getOutputStream()).thenReturn(tempOut);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        masterHandler.handle(sock1);
-
-        try {
-            doNothing().when(sock3).setSoTimeout(anyInt());
-            when(sock3.getInputStream()).thenReturn(new ByteArrayInputStream(tempOut.toByteArray()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        KVMessage check = new KVMessage(sock3);
-        assertEquals(RESP, check.getMsgType());
-        assertEquals(ERROR_NO_SUCH_KEY, check.getMessage());
+        desc = "Test a single PUT handling")
+    public void singlePutTest() {
+    	
     }
 
 
