@@ -112,7 +112,6 @@ public class SocketServer {
     			}
 
     		}
-//    		fix this exception for checkpoint3
     	} catch (Exception e) {
     		throw new IOException();
     	}
