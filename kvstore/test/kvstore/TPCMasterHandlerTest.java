@@ -28,7 +28,8 @@ import autograder.AGCategories.AG_PROJ4_CODE;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(TPCMasterHandler.class)
 public class TPCMasterHandlerTest {
-	private KVServer server;
+
+    private KVServer server;
     private TPCMasterHandler masterHandler;
     private Socket sock1;
     private Socket sock2;
@@ -57,10 +58,24 @@ public class TPCMasterHandlerTest {
             System.err.printf("deleting log-file at %s failed.\n", log.getAbsolutePath());
         }
     }
-    
-    
-    
-    
+
+    @Test
+    @Category(AG_PROJ4_CODE.class)
+    @AGTestDetails(points = 1,
+        desc = "Test a single PUT request")
+    public void testPut() throws KVException {
+    	setupSocketSuccess();
+        KVMessage msg = new KVMessage(PUT_REQ);
+        msg.setKey("testKey");
+        msg.setValue("testValue");
+        msg.sendMessage(sock1);
+        masterHandler.handle(sock1);
+        KVMessage response = new KVMessage(sock1);
+        System.out.println(response.getMsgType());
+    }
+
+
+
     /* begin helper methods. */
 
     private void setupSocketSuccess() {
