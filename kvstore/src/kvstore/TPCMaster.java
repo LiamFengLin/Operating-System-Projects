@@ -292,7 +292,7 @@ public class TPCMaster {
             			
             		}
             	}
-                throw new KVException("getting out");
+                throw new KVException(KVConstants.ERROR_COULD_NOT_SEND_DATA);
             }
             KVMessage commitMsg = new KVMessage(COMMIT);
     		KVMessage commitRsp1;

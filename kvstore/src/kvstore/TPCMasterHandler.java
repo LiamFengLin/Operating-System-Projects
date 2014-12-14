@@ -122,14 +122,17 @@ public class TPCMasterHandler implements NetworkHandler {
 				try {
 					KVMessage message = new KVMessage(f_socket);
 					KVMessage response;
-
+					
 					String msgType = message.getMsgType();
 					if (msgType.equals(KVConstants.GET_REQ)) {
 						response = new KVMessage(RESP);
 						response.setKey(message.getKey());
 						response.setValue(kvServer.get(message.getKey()));
 						response.sendMessage(f_socket);
-					} else if (phase == 2 && msgType.equals(KVConstants.COMMIT)) {
+					} else if (msgType.equals(KVConstants.COMMIT)) {
+						if (action != null) {
+							tpcLog.appendAndFlush(message);
+						}
 						if (action != null) {
 							if (action.getMsgType().equals(KVConstants.DEL_REQ)) {
 								kvServer.del(action.getKey());								
@@ -140,9 +143,6 @@ public class TPCMasterHandler implements NetworkHandler {
 						response = new KVMessage(ACK);
 						response.sendMessage(f_socket);
 						phase = 1;
-						if (action != null) {
-							tpcLog.appendAndFlush(message);
-						}
 						action = null;
 
 					} else if (phase == 1 && msgType.equals(KVConstants.PUT_REQ)) {
@@ -167,11 +167,12 @@ public class TPCMasterHandler implements NetworkHandler {
 						
 						
 					} else if (msgType.equals(KVConstants.ABORT))  {
-						response = new KVMessage(ACK);
-						response.sendMessage(f_socket);
 						if (action != null && phase == 2) {
 							tpcLog.appendAndFlush(message);
 						}
+						response = new KVMessage(ACK);
+						response.sendMessage(f_socket);
+						
 						phase = 1;
 						action = null;
 					}
