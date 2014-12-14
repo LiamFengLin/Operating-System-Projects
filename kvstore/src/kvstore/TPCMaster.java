@@ -118,10 +118,6 @@ public class TPCMaster {
      */
     public TPCSlaveInfo findFirstReplica(String key) {
         // implement me
-    	// calculate which key space the key falls into
-    	// keySpaceSize for each slave = 2^64 / numSlaves
-    	// slaveIndex = hashcode(64 bits) / keySpaceSize
-    	// return slaveArray[slaveIndex]
     	long smallestGreater = Long.MAX_VALUE;
     	int resultIndex = -1;
     	long hashValue = hashTo64bit(key);
@@ -153,9 +149,6 @@ public class TPCMaster {
      */
     public TPCSlaveInfo findSuccessor(TPCSlaveInfo firstReplica) {
         // implement me
-    	// iterate through slave array; firstReplicaIndex = find index of firstReplica
-    	// nextReplicaIndex = (firstReplicaIndex + 1) % numSlaves
-    	// return nexReplicaIndex
     	
     	long first = firstReplica.getSlaveID();
     	int resultIndex = -1;
@@ -228,22 +221,6 @@ public class TPCMaster {
     public synchronized void handleTPCRequest(KVMessage msg, boolean isPutReq)
             throws KVException {
         // implement me
-    	// state = [prepareSent, responseCollected, responseSent, decisionSent, ACKReceived]
-    	// have not handled master failure/recover from state yet
-    	// Lock.lock()
-    	// if isPutReq
-	    	// phase 1:
-	    		// initialize sockets for each slave
-	    		// send KVMessage(PREPARE) to each slave
-	    		// wait for responses (ready or abort) for each socket
-	    			// calculate responses if all ready or abort
-	    	// phase 2:	
-    			// initialize sockets again for each slave
-	    		// send KVMessage(commit or abort) to each slave
-	    		// wait for ACK responses for each slave
-	    		// if any of them times out, close socket and resend ACK response for that slave
-    			// after all ACK received, update master cache
-	    // Lock.unlock()
     	this.writeLock.lock();
     	String key = msg.getKey();
     	String value = msg.getValue();
@@ -362,17 +339,6 @@ public class TPCMaster {
      */
     public String handleGet(KVMessage msg) throws KVException {
         // implement me
-    	// Try to GET from cache, return immediately if found
-    	// if not:
-    		// initialize sockets for first slave
-    		// findFirstReplica()
-        	// Send KVMessage to first/primary slave to get first/primary replica
-        // Wait for response; If primary succeeded, return value
-        // If primary failed, findSuccessor(), initialize socket for second slave 
-    		// send KVMessage(GET_REQ) to the other replica
-        	// Wait for response; If secondary succeeded, return value
-        // If secondary failed, return KVExceptions from both replicas
-    	
     	this.readLock.lock();
     	if (this.readCount == 0) {
     		this.writeLock.lock();
