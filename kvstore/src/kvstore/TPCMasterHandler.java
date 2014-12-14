@@ -160,6 +160,7 @@ public class TPCMasterHandler implements NetworkHandler {
 							phase = 2;
 						} else {
 							response = new KVMessage(ABORT);
+							response.setMessage(ERROR_NO_SUCH_KEY);
 							response.sendMessage(f_socket);
 							phase = 1;
 						}

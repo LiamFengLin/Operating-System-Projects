@@ -268,8 +268,11 @@ public class TPCMaster {
                 msg.sendMessage(sock2);
             	KVMessage kvReturnMessage1 = new KVMessage(sock1, TIMEOUT);
                 KVMessage kvReturnMessage2 = new KVMessage(sock2, TIMEOUT);
-            	if (!kvReturnMessage1.getMsgType().equals(READY) || !kvReturnMessage2.getMsgType().equals(READY)) {
-            		throw new KVException("error");
+            	if (!kvReturnMessage1.getMsgType().equals(READY)) {
+            		throw new KVException(kvReturnMessage1.getMessage());
+            	}
+            	if (!kvReturnMessage2.getMsgType().equals(READY)) {
+            		throw new KVException(kvReturnMessage2.getMessage());
             	}
             } catch (Exception e) {
             	KVMessage abortMsg = new KVMessage(ABORT);
@@ -292,7 +295,7 @@ public class TPCMaster {
             			
             		}
             	}
-                throw new KVException(KVConstants.ERROR_COULD_NOT_SEND_DATA);
+                throw e;
             }
             KVMessage commitMsg = new KVMessage(COMMIT);
     		KVMessage commitRsp1;
