@@ -66,18 +66,22 @@ public class TPCMasterHandler implements NetworkHandler {
     	KVMessage last = this.tpcLog.getLastEntry();
     	if (last != null) {
     		if (last.getMsgType().equals("putreq")) {
-    			this.phase = 1;
+    			this.phase = 2;
     			this.action = last;
     		} else if (last.getMsgType().equals("delreq")) {
-    			this.phase = 1;
+    			this.phase = 2;
     			this.action = last;
     		} else if (last.getMsgType().equals("commit")) {
-    			this.phase = 2;
+    			this.phase = 1;
+    			this.action = null;
     		} else if (last.getMsgType().equals("abort")) {
     			this.phase = 1;
     			this.action = null;
     		}
+    	} else {
+    		this.phase = 1;
     	}
+    	
 
     	
     	String slaveHostname = server.getHostname();
@@ -126,7 +130,6 @@ public class TPCMasterHandler implements NetworkHandler {
 						response.setValue(kvServer.get(message.getKey()));
 						response.sendMessage(f_socket);
 					} else if (phase == 2 && msgType.equals(KVConstants.COMMIT)) {
-						tpcLog.appendAndFlush(message);
 						if (action != null) {
 							if (action.getMsgType().equals(KVConstants.DEL_REQ)) {
 								kvServer.del(action.getKey());								
@@ -137,6 +140,10 @@ public class TPCMasterHandler implements NetworkHandler {
 						response = new KVMessage(ACK);
 						response.sendMessage(f_socket);
 						phase = 1;
+						if (action != null) {
+							tpcLog.appendAndFlush(message);
+						}
+						action = null;
 
 					} else if (phase == 1 && msgType.equals(KVConstants.PUT_REQ)) {
 						tpcLog.appendAndFlush(message);
@@ -150,12 +157,14 @@ public class TPCMasterHandler implements NetworkHandler {
 						response = new KVMessage(READY);
 						response.sendMessage(f_socket);
 						phase = 2;
-					} else if (phase == 2 && msgType.equals(KVConstants.ABORT))  {
-						tpcLog.appendAndFlush(message);
-						action = null;
+					} else if (msgType.equals(KVConstants.ABORT))  {
 						response = new KVMessage(ACK);
 						response.sendMessage(f_socket);
+						if (action != null && phase == 2) {
+							tpcLog.appendAndFlush(message);
+						}
 						phase = 1;
+						action = null;
 					}
 				}  catch (KVException e) {
 					try {

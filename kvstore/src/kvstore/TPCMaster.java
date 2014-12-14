@@ -265,16 +265,16 @@ public class TPCMaster {
             Socket sock2 = second_replica.connectHost(TIMEOUT);
             try {
             	msg.sendMessage(sock1);
+                msg.sendMessage(sock2);
             	KVMessage kvReturnMessage1 = new KVMessage(sock1, TIMEOUT);
-            	msg.sendMessage(sock2);
-            	KVMessage kvReturnMessage2 = new KVMessage(sock2, TIMEOUT);
+                KVMessage kvReturnMessage2 = new KVMessage(sock2, TIMEOUT);
             	if (!kvReturnMessage1.getMsgType().equals(READY) || !kvReturnMessage2.getMsgType().equals(READY)) {
             		throw new KVException("error");
             	}
             } catch (Exception e) {
             	KVMessage abortMsg = new KVMessage(ABORT);
         		KVMessage abortRsp1;
-        		KVMessage abortRsp2;
+                KVMessage abortRsp2;
             	while (true) {
             		try {
             			first_replica = this.findFirstReplica(key);
@@ -282,17 +282,17 @@ public class TPCMaster {
             			Socket abortsock1 = first_replica.connectHost(TIMEOUT);
                         Socket abortsock2 = second_replica.connectHost(TIMEOUT);
             			abortMsg.sendMessage(abortsock1);
-            			abortMsg.sendMessage(abortsock2);
+                        abortMsg.sendMessage(abortsock2);
             			abortRsp1 = new KVMessage(abortsock1, TIMEOUT);
-            			abortRsp2 = new KVMessage(abortsock2, TIMEOUT);
-            			if (abortRsp1.getMsgType().equals(ACK) && abortRsp2.getMsgType().equals(ACK)) {
+                        abortRsp2 = new KVMessage(abortsock2, TIMEOUT);
+            			if (abortRsp1.getMsgType().equals(ACK) || abortRsp2.getMsgType().equals(ACK)) {
             				break;
             			}
             		} catch (Exception e2) {
             			
             		}
             	}
-            	throw new KVException("getting out");
+                throw new KVException("getting out");
             }
             KVMessage commitMsg = new KVMessage(COMMIT);
     		KVMessage commitRsp1;
@@ -300,14 +300,24 @@ public class TPCMaster {
         	while (true) {
         		try {
         			first_replica = this.findFirstReplica(key);
-                	second_replica = this.findSuccessor(first_replica);
         			Socket commitsock1 = first_replica.connectHost(TIMEOUT);
-                    Socket commitsock2 = second_replica.connectHost(TIMEOUT);
         			commitMsg.sendMessage(commitsock1);
-        			commitMsg.sendMessage(commitsock2);
         			commitRsp1 = new KVMessage(commitsock1, TIMEOUT);
+        			if (commitRsp1.getMsgType().equals(ACK)) {
+        				break;
+        			}
+        		} catch (Exception e2) {
+        			
+        		}
+        	}
+        	while (true) {
+        		try {
+        			first_replica = this.findFirstReplica(key);
+                	second_replica = this.findSuccessor(first_replica);
+                    Socket commitsock2 = second_replica.connectHost(TIMEOUT);
+        			commitMsg.sendMessage(commitsock2);
         			commitRsp2 = new KVMessage(commitsock2, TIMEOUT);
-        			if (commitRsp1.getMsgType().equals(ACK) && commitRsp2.getMsgType().equals(ACK)) {
+        			if (commitRsp2.getMsgType().equals(ACK)) {
         				break;
         			}
         		} catch (Exception e2) {
