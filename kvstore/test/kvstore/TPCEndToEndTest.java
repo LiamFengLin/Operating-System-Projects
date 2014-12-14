@@ -239,8 +239,7 @@ public class TPCEndToEndTest extends TPCEndToEndTemplate {
 				fail("Client did not throw exception!");
 			} catch (KVException kve) {
 				// TODO Auto-generated catch block
-//				assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
-				System.out.println(kve.toString());
+				assertKVExceptionEquals(ERROR_NO_SUCH_KEY, kve);
 			}
 		}
 		
