@@ -151,12 +151,21 @@ public class TPCMasterHandler implements NetworkHandler {
 						response = new KVMessage(READY);
 						response.sendMessage(f_socket);
 						phase = 2;
-					} else if (phase == 1 && msgType.equals(KVConstants.DEL_REQ)) {
+					} else if (phase == 1 && msgType.equals(KVConstants.DEL_REQ)) {	
 						tpcLog.appendAndFlush(message);
 						action = message;
-						response = new KVMessage(READY);
-						response.sendMessage(f_socket);
-						phase = 2;
+						if (kvServer.hasKey(message.getKey())) {
+							response = new KVMessage(READY);
+							response.sendMessage(f_socket);
+							phase = 2;
+						} else {
+							response = new KVMessage(ABORT);
+							response.sendMessage(f_socket);
+							phase = 1;
+						}
+						
+						
+						
 					} else if (msgType.equals(KVConstants.ABORT))  {
 						response = new KVMessage(ACK);
 						response.sendMessage(f_socket);
